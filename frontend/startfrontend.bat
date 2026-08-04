@@ -1,6 +1,6 @@
 @echo off
 :: ── startfrontend.bat ─────────────────────────────────────────────────────────
-:: Starts the NovaCart frontend dev server on http://localhost:3000
+:: Starts the NovaCart frontend dev server on http://127.0.0.1:3000
 :: 1. Checks Node.js is installed — installs via winget if missing
 :: 2. Runs npm install only when package.json has changed
 :: 3. Starts the Vite dev server
@@ -99,7 +99,7 @@ call :log "  npm install done -- proceeding to start"
 call :log "[DIAG] Reached :start -- launching Vite dev server"
 cd /d "%HERE%"
 echo.
-echo Starting NovaCart frontend at http://localhost:3000
+echo Starting NovaCart frontend at http://127.0.0.1:3000
 echo Press Ctrl+C to stop.
 echo Log file: %LOG%
 echo.
