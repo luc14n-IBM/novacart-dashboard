@@ -45,6 +45,12 @@ if errorlevel 1 (
         exit /b 1
     )
     winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
+    if errorlevel 1 (
+        call :log " ERROR: winget failed to install Node.js (exit code %errorlevel%)."
+        call :log "        Try running this script as Administrator, or install Node.js manually from https://nodejs.org/"
+        pause
+        exit /b 1
+    )
     for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH 2^>nul') do set "SYS_PATH=%%B"
     for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH 2^>nul') do set "USR_PATH=%%B"
     if defined USR_PATH (set "PATH=%SYS_PATH%;%USR_PATH%") else (set "PATH=%SYS_PATH%")
