@@ -1,34 +1,35 @@
 # NovaCart Account Dashboard
 ### HC&D Associates Capstone — App Developer + App Consultant
 
-Your starting point for the NovaCart Account Dashboard capstone. The infrastructure is already set up. Your job is to implement the API endpoints and the frontend UI.
+React + FastAPI dashboard for the NovaCart account manager. Reads from the Gold data layer produced by the Data Engineering team and surfaces revenue, order, product, and customer insights.
 
 ---
 
 ## What's in this repo
 
 ```
-backend/          Python + FastAPI API skeleton
-  main.py         ← Your main work — implement the 5 TODO endpoints
-  connection.py   ← Already done — handles local dev + SPCS automatically
+backend/          Python + FastAPI API
+  main.py         — 5 franchise endpoints + health + auth
+  connection.py   — handles SQLite (local dev) and Snowflake (SPCS) automatically
   requirements.txt
   Dockerfile
 
-frontend/         React 18 frontend skeleton
-  src/pages/      ← Your main work — implement the UI in these 3 files
-    OrdersView.js
-    ProductsView.js
-    CustomersView.js
-  src/components/ ← Already done — Navbar, ServiceStatus
-  src/utils/      ← Already done — api.js, ThemeContext.js
+frontend/         React 18 frontend
+  src/pages/
+    OrdersView.jsx    — stat cards + monthly revenue chart + cities chart
+    ProductsView.jsx  — products bar chart + products table
+    CustomersView.jsx — sortable customers table
+    LoginView.jsx     — login + /authorize integration
+  src/components/     — Navbar, ServiceStatus
+  src/utils/          — api.js, ThemeContext.js
   Dockerfile
 
 router/           NGINX reverse proxy — do not modify
 data/
-  novacart_gold.db  ← SQLite database for local development
+  novacart_gold.db  — SQLite database for local development
                       30,000 orders · 400 customers · 15 products
 
-build-and-push.sh   ← Run this on Day 4 to deploy to SPCS
+build-and-push.sh   — Run on Day 4 to deploy to SPCS
 ```
 
 ---
@@ -43,14 +44,14 @@ cp .env.example .env
 # No changes needed — DATA_BACKEND=sqlite works out of the box
 
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Open **http://localhost:8000/docs** — Swagger UI with all endpoints.
+Open **http://127.0.0.1:8000/docs** — Swagger UI with all endpoints.
 
 Test the health endpoint:
 ```bash
-curl http://localhost:8000/health
+curl http://127.0.0.1:8000/health
 ```
 
 ### 2. Frontend
@@ -58,46 +59,37 @@ curl http://localhost:8000/health
 ```bash
 cd frontend
 cp .env.example .env
+# VITE_BACKEND_URL=/api  (uses Vite dev proxy — no CORS issues)
 
 npm install
-npm start
-# Opens at http://localhost:3000
+npm run dev
+# Opens at http://127.0.0.1:3000
+```
+
+Or run both together from the repo root:
+```bash
+# macOS
+bash startapp.sh
+
+# Windows
+startapp.bat
 ```
 
 ---
 
-## Your Work
-
-### App Developer
-
-**Backend** — open `backend/main.py` and implement the 5 endpoints:
+## API Endpoints
 
 | Endpoint | Description |
 |---|---|
-| `GET /franchise/summary` | Total revenue, orders, unique customers |
-| `GET /franchise/orders` | Monthly order volume and revenue |
-| `GET /franchise/products` | Top 10 products by revenue |
-| `GET /franchise/customers` | Top 20 customers by revenue |
-| `GET /franchise/cities` | Revenue by city and state |
+| `GET /health` | Service health check and DB connectivity |
+| `GET /authorize` | SPCS OAuth — returns authenticated user |
+| `GET /franchise/summary` | Total revenue, orders, unique customers, date range |
+| `GET /franchise/orders` | Monthly order volume and revenue (filterable by date) |
+| `GET /franchise/products` | Top 10 products by revenue (filterable by date) |
+| `GET /franchise/customers` | Top 20 customers by revenue (filterable by date) |
+| `GET /franchise/cities` | Revenue by city and state (filterable by date) |
 
-Each endpoint has a `TODO` comment with hints and the expected response format.
-
-**Frontend** — open the three files in `frontend/src/pages/` and implement the UI:
-
-| File | What to build |
-|---|---|
-| `OrdersView.js` | Stat cards + monthly revenue chart + cities chart |
-| `ProductsView.js` | Products bar chart + products table |
-| `CustomersView.js` | Sortable customers table |
-
-Each file has `TODO` comments explaining exactly what to build and which data is available.
-
-### App Consultant
-
-- Write the requirements document before any code is written (end of Day 1)
-- Validate each endpoint against requirements before marking it done
-- Write the Solution Design Document by Day 4
-- Prepare and lead the client presentation on Day 5
+All date-range endpoints accept `?start=YYYY-MM-DD&end=YYYY-MM-DD` query parameters.
 
 ---
 
@@ -119,13 +111,12 @@ dim_date       date_key, full_date, year, quarter, month,
                month_name, day_of_week, is_weekend
 ```
 
-Use `status IN ('delivered', 'shipped')` for revenue calculations.
+Revenue calculations use `status IN ('delivered', 'shipped')`.
+All customer geography is US-only (city + state, no country field).
 
 ---
 
 ## Deploying to SPCS
-
-When your endpoints are working and the UI is connected, on Day 4:
 
 ```bash
 export REPO_URL=<provided by your facilitator>
@@ -136,15 +127,15 @@ bash build-and-push.sh
 
 Then notify your facilitator — they will deploy your services and give you the public URL.
 
+Set `CLIENT_VALIDATION=Prod` in the backend service spec (already defaulted in the Dockerfile) so SPCS OAuth is active on deployment.
+
 ---
 
 ## Troubleshooting
 
-**`501 Not implemented` error** — Expected. Those are the endpoints you need to build.
+**Backend can't find the database** — Run `uvicorn` from inside the `backend/` directory, or use `startapp.bat` / `startapp.sh`.
 
-**Backend can't find the database** — Run `uvicorn` from inside the `backend/` directory.
-
-**CORS error in browser** — Make sure `CLIENT_VALIDATION=Dev` in your backend `.env`.
+**CORS error in browser** — Make sure `CLIENT_VALIDATION=Dev` in your backend `.env` and `VITE_BACKEND_URL=/api` in your frontend `.env`.
 
 **`snow` command not found** — Run:
 ```bash

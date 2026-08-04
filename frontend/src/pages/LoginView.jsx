@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authorize } from '../utils/api';
 
 export default function LoginView() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // TODO: wire up real auth here
-    navigate('/orders');
+    setError(null);
+    setLoading(true);
+    try {
+      await authorize();
+      navigate('/orders');
+    } catch (err) {
+      setError('Unable to authenticate. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -108,13 +119,21 @@ export default function LoginView() {
             />
           </div>
 
+          {/* Error message */}
+          {error && (
+            <div style={{ color: '#C62828', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 6, padding: '9px 12px', fontSize: 13, marginBottom: 16 }}>
+              {error}
+            </div>
+          )}
+
           {/* Submit */}
           <button
             type="submit"
             className="btn-apply"
-            style={{ width: '100%', padding: '10px', fontSize: 14, borderRadius: 6 }}
+            disabled={loading}
+            style={{ width: '100%', padding: '10px', fontSize: 14, borderRadius: 6, opacity: loading ? 0.7 : 1 }}
           >
-            Sign in
+            {loading ? 'Signing in…' : 'Sign in'}
           </button>
 
         </form>

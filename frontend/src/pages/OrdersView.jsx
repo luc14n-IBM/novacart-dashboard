@@ -77,67 +77,62 @@ export default function OrdersView() {
         {/* ── Loading state ──────────────────────────────────────────────── */}
         {loading && <div className="loading">Loading orders data…</div>}
 
-        {/* ── TODO: Build the UI here ────────────────────────────────────── */}
         {!loading && !error && (
           <>
-            {/*
-              STEP 1 — Stat cards
-              Show total_revenue, total_orders, unique_customers from summary.
-              Hint: use the .stat-row and .stat-box CSS classes.
-              Available data: summary.total_revenue, summary.total_orders, summary.unique_customers
-            */}
+            {/* Stat cards */}
             <div className="stat-row">
               <div className="stat-box">
-                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <DocumentChart size={12} />Total Revenue
+                <div className="label">Total Revenue</div>
+                <div className="value">
+                  ${summary?.total_revenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                <div className="value">TODO</div>
               </div>
               <div className="stat-box">
-                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <BarChartIcon size={12} />Total Orders
-                </div>
-                <div className="value">TODO</div>
+                <div className="label">Total Orders</div>
+                <div className="value">{summary?.total_orders?.toLocaleString()}</div>
               </div>
               <div className="stat-box">
-                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <GlobePin size={12} />Unique Customers
+                <div className="label">Unique Customers</div>
+                <div className="value">{summary?.unique_customers?.toLocaleString()}</div>
+              </div>
+              <div className="stat-box">
+                <div className="label">Date Range</div>
+                <div className="value" style={{ fontSize: 14 }}>
+                  {summary?.date_range?.start} – {summary?.date_range?.end}
                 </div>
-                <div className="value">TODO</div>
               </div>
             </div>
 
-            {/*
-              STEP 2 — Monthly revenue chart
-              orders is an array of: { month, month_name, order_count, revenue }
-              Use a BarChart or LineChart from recharts.
-              Hint: XAxis dataKey="month_name", Bar dataKey="revenue"
-            */}
+            {/* Monthly revenue bar chart */}
             <div className="card" style={{ marginBottom: 20 }}>
-              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <BarChartIcon size={18} />Monthly Revenue
-              </div>
-              {/* TODO: add your chart here */}
-              <div className="loading" style={{ height: 200 }}>
-                Implement the monthly revenue chart using recharts BarChart
-              </div>
+              <div className="section-title" style={{ marginBottom: 16 }}>Monthly Revenue</div>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={orders} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month_name" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+                  <YAxis tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} width={56} />
+                  <Tooltip formatter={v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
+                  <Bar dataKey="revenue" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
-            {/*
-              STEP 3 — Revenue by city chart
-              cities is an array of: { city, state, order_count, revenue }
-              Use a horizontal BarChart (layout="vertical").
-              Show top 10 cities only.
-              Hint: .slice(0, 10) on cities array
-            */}
+            {/* Revenue by city horizontal bar chart — top 10 */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <GlobePin size={18} />Revenue by City
-              </div>
-              {/* TODO: add your chart here */}
-              <div className="loading" style={{ height: 200 }}>
-                Implement the cities chart using recharts BarChart with layout="vertical"
-              </div>
+              <div className="section-title" style={{ marginBottom: 16 }}>Revenue by City (Top 10)</div>
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart
+                  layout="vertical"
+                  data={cities.slice(0, 10).map(c => ({ ...c, label: `${c.city}, ${c.state}` }))}
+                  margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                  <XAxis type="number" tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+                  <YAxis type="category" dataKey="label" width={120} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+                  <Tooltip formatter={v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
+                  <Bar dataKey="revenue" fill="var(--blue)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </>
         )}
