@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# hooks/pre-push — runs backend and frontend tests before every git push.
+# Installed into .git/hooks/pre-push by hooks/install-hooks.sh (macOS/Linux)
+# or hooks/install-hooks.bat (Windows).
+#
+# To skip in an emergency:  git push --no-verify
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+echo ""
+echo -e "${BOLD}━━━ Pre-push checks ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+# ── Backend — pytest ──────────────────────────────────────────────────────────
+
+echo ""
+echo -e "${BOLD}[1/2] Backend tests (pytest)${RESET}"
+
+# Locate the Python binary — Unix uses bin/, Windows (Git Bash) uses Scripts/
+VENV_PYTHON="$REPO_ROOT/backend/venv/bin/python"
+if [[ ! -x "$VENV_PYTHON" ]]; then
+  VENV_PYTHON="$REPO_ROOT/backend/venv/Scripts/python.exe"
+fi
+
+if [[ ! -x "$VENV_PYTHON" ]]; then
+  echo -e "${YELLOW}  ⚠ backend/venv not found — skipping backend tests.${RESET}"
+  echo -e "  Run ${BOLD}backend/startbackend.sh${RESET} (macOS) or ${BOLD}backend\\startbackend.bat${RESET} (Windows) once to create the venv."
+  BACKEND_STATUS="skipped"
+else
+  if "$VENV_PYTHON" -m pytest "$REPO_ROOT/backend/test_api.py" -q --tb=short 2>&1; then
+    echo -e "${GREEN}  ✓ Backend tests passed${RESET}"
+    BACKEND_STATUS="passed"
+  else
+    echo -e "${RED}  ✗ Backend tests failed — push blocked.${RESET}"
+    echo -e "  Fix the failures above, or run with ${BOLD}git push --no-verify${RESET} to bypass."
+    exit 1
+  fi
+fi
+
+# ── Frontend — Vitest ─────────────────────────────────────────────────────────
+
+echo ""
+echo -e "${BOLD}[2/2] Frontend tests (Vitest)${RESET}"
+
+if [[ ! -d "$REPO_ROOT/frontend/node_modules" ]]; then
+  echo -e "${YELLOW}  ⚠ frontend/node_modules not found — skipping frontend tests.${RESET}"
+  echo -e "  Run ${BOLD}frontend/startfrontend.sh${RESET} once to install dependencies."
+  FRONTEND_STATUS="skipped"
+else
+  if npm run test --prefix "$REPO_ROOT/frontend" 2>&1; then
+    echo -e "${GREEN}  ✓ Frontend tests passed${RESET}"
+    FRONTEND_STATUS="passed"
+  else
+    echo -e "${RED}  ✗ Frontend tests failed — push blocked.${RESET}"
+    echo -e "  Fix the failures above, or run with ${BOLD}git push --no-verify${RESET} to bypass."
+    exit 1
+  fi
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+
+echo ""
+echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "  Backend  : ${BACKEND_STATUS}"
+echo -e "  Frontend : ${FRONTEND_STATUS}"
+echo -e "${GREEN}${BOLD}  All checks passed — pushing.${RESET}"
+echo ""
