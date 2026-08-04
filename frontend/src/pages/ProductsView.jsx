@@ -72,7 +72,9 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
 
             {/* Top products horizontal bar chart */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SearchGraph size={18} />Top 10 Products by Revenue
+              </div>
               <ResponsiveContainer width="100%" height={340}>
                 <BarChart
                   layout="vertical"
@@ -89,7 +91,9 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
 
             {/* Products detail table */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ProductGrid size={18} />Product Details
+              </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
