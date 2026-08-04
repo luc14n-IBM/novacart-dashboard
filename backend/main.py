@@ -9,7 +9,7 @@ Endpoints:
   GET /franchise/summary        — overview stats (revenue, orders, customers, date range)
   GET /franchise/orders         — monthly order volume and revenue
   GET /franchise/products       — top 10 products by revenue
-  GET /franchise/customers      — top 10 customers by revenue
+  GET /franchise/customers      — top 20 customers by revenue
   GET /franchise/cities         — revenue by city/state
 
 Data schema (from the DE capstone Gold layer):
@@ -243,8 +243,7 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
 @app.get("/franchise/customers", tags=["Franchise"])
 def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
     """
-    Returns the top 10 customers by revenue for the given date range.
-    (Previously top 20 — reduced to match products endpoint limit.)
+    Returns the top 20 customers by revenue for the given date range.
 
     Expected response:
     [
@@ -270,7 +269,7 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
           AND o.status IN ('delivered', 'shipped')
         GROUP BY o.customer_id, c.name, c.addr_city, c.addr_state
         ORDER BY total_spent DESC
-        LIMIT 10
+        LIMIT 20
     """, (start, end))
 
     return results
