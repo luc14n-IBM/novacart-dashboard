@@ -6,16 +6,27 @@
 :: 3. Launches the frontend in a new window
 :: ─────────────────────────────────────────────────────────────────────────────
 
+:: ── Kill any existing backend ─────────────────────────────────────────────────
+echo Stopping any existing backend...
+
+:: Kill uvicorn and its entire process tree (reloader + server worker)
+for /f "tokens=2" %%p in ('tasklist /FI "IMAGENAME eq uvicorn.exe" /FO list ^| findstr "PID:"') do (
+    taskkill /PID %%p /F /T >nul 2>&1
+)
+
+:: Wait for OS to release the port
+timeout /t 3 /nobreak >nul
+
 echo Starting NovaCart backend in a new window...
 start "NovaCart Backend" /d "%~dp0backend" cmd /k "startbackend.bat"
 
 :: ── Poll /health until backend responds ──────────────────────────────────────
-echo Waiting for backend to be ready at http://localhost:8000/health ...
+echo Waiting for backend to be ready at http://127.0.0.1:8000/health ...
 set RETRIES=0
 set MAX_RETRIES=30
 
 :wait_loop
-curl -s -o nul -w "%%{http_code}" http://localhost:8000/health 2>nul | findstr /x "200" >nul
+curl -s -o nul -w "%%{http_code}" http://127.0.0.1:8000/health 2>nul | findstr /x "200" >nul
 if not errorlevel 1 (
     echo   Backend is up!
     goto :launch_frontend
