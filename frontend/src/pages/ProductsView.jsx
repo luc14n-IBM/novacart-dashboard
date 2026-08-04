@@ -14,6 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Navbar from '../components/Navbar';
 import { getProducts } from '../utils/api';
+import { ProductGrid, SearchGraph, Gear } from '../components/Icons';
 
 // Format currency helper
 function formatCurrency(value) {
@@ -55,7 +56,9 @@ export default function ProductsView() {
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <label>To</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          <button className="btn-apply" onClick={loadData}>Apply</button>
+          <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Gear size={13} />Apply
+          </button>
         </div>
 
         {error && (
@@ -71,7 +74,9 @@ export default function ProductsView() {
 
             {/* Top products horizontal bar chart */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SearchGraph size={18} />Top 10 Products by Revenue
+              </div>
               <ResponsiveContainer width="100%" height={340}>
                 <BarChart
                   layout="vertical"
@@ -88,7 +93,9 @@ export default function ProductsView() {
 
             {/* Products detail table */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ProductGrid size={18} />Product Details
+              </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px' }}>

@@ -18,6 +18,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Navbar from '../components/Navbar';
 import { getSummary, getOrders, getCities } from '../utils/api';
+import { DocumentChart, BarChartIcon, GlobePin, FlowNodes, Gear } from '../components/Icons';
 
 export default function OrdersView() {
   const [startDate, setStartDate] = useState('2022-01-01');
@@ -56,11 +57,14 @@ export default function OrdersView() {
 
         {/* ── Filter bar ─────────────────────────────────────────────────── */}
         <div className="filter-bar">
+          <FlowNodes size={14} style={{ color: 'var(--text-muted)' }} />
           <label>From</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <label>To</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          <button className="btn-apply" onClick={loadData}>Apply</button>
+          <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Gear size={13} />Apply
+          </button>
         </div>
 
         {/* ── Error state ────────────────────────────────────────────────── */}
@@ -78,17 +82,23 @@ export default function OrdersView() {
             {/* Stat cards */}
             <div className="stat-row">
               <div className="stat-box">
-                <div className="label">Total Revenue</div>
+                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <DocumentChart size={12} />Total Revenue
+                </div>
                 <div className="value">
                   ${summary?.total_revenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
               <div className="stat-box">
-                <div className="label">Total Orders</div>
+                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <BarChartIcon size={12} />Total Orders
+                </div>
                 <div className="value">{summary?.total_orders?.toLocaleString()}</div>
               </div>
               <div className="stat-box">
-                <div className="label">Unique Customers</div>
+                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <GlobePin size={12} />Unique Customers
+                </div>
                 <div className="value">{summary?.unique_customers?.toLocaleString()}</div>
               </div>
               <div className="stat-box">
@@ -101,7 +111,9 @@ export default function OrdersView() {
 
             {/* Monthly revenue bar chart */}
             <div className="card" style={{ marginBottom: 20 }}>
-              <div className="section-title" style={{ marginBottom: 16 }}>Monthly Revenue</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <BarChartIcon size={18} />Monthly Revenue
+              </div>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={orders} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -115,7 +127,9 @@ export default function OrdersView() {
 
             {/* Revenue by city horizontal bar chart — top 10 */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Revenue by City (Top 10)</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <GlobePin size={18} />Revenue by City (Top 10)
+              </div>
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart
                   layout="vertical"

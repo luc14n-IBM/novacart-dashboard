@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getHealth } from '../utils/api';
+import { DatabaseGear } from './Icons';
 
 export default function ServiceStatus() {
   const [status, setStatus] = useState('checking');
@@ -27,12 +28,9 @@ export default function ServiceStatus() {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }} title={detail}>
-      <span style={{
-        width: 8, height: 8, borderRadius: '50%',
-        backgroundColor: colors[status],
-        boxShadow: status === 'healthy' ? `0 0 6px ${colors[status]}` : 'none',
-        display: 'inline-block',
-      }} />
+      <span style={{ color: colors[status], display: 'flex', alignItems: 'center' }}>
+        <DatabaseGear size={14} />
+      </span>
       <span style={{ color: colors[status], fontWeight: 500 }}>{labels[status]}</span>
     </div>
   );

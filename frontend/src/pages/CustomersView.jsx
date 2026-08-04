@@ -13,6 +13,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { getCustomers } from '../utils/api';
+import { UserBriefcase, Gear } from '../components/Icons';
 
 function formatCurrency(value) {
   if (!value) return '$0';
@@ -75,7 +76,9 @@ export default function CustomersView() {
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <label>To</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          <button className="btn-apply" onClick={loadData}>Apply</button>
+          <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Gear size={13} />Apply
+          </button>
           <span style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--text-muted)' }}>
             {customers.length} customers
           </span>
@@ -91,8 +94,8 @@ export default function CustomersView() {
 
         {!loading && !error && (
           <div className="card">
-            <div className="section-title" style={{ marginBottom: 16 }}>
-              Top Customers by Revenue
+            <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <UserBriefcase size={18} />Top Customers by Revenue
             </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
