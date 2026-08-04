@@ -75,4 +75,4 @@ echo "Starting backend server on http://127.0.0.1:8000 ..."
 echo "(Press Ctrl+C to stop)"
 echo ""
 
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
+uvicorn main:app --reload --reload-delay 1 --host 127.0.0.1 --port 8000

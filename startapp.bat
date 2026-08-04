@@ -20,11 +20,11 @@ for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":8000 " ^| findstr "LISTENIN
 :: Kill any lingering uvicorn processes by name
 taskkill /IM uvicorn.exe /F >nul 2>&1
 
-:: Brief pause to let the OS release the port before binding again
-timeout /t 2 /nobreak >nul
+:: Wait for OS to fully release the port (TIME_WAIT can hold it for several seconds)
+timeout /t 4 /nobreak >nul
 
 echo Starting NovaCart backend in a new window...
-start "NovaCart Backend" /d "%~dp0backend" cmd /k "startbackend.bat"
+start "NovaCart Backend" /d "%~dp0backend" /b cmd /c "startbackend.bat"
 
 :: ── Poll /health until backend responds ──────────────────────────────────────
 echo Waiting for backend to be ready at http://127.0.0.1:8000/health ...
@@ -48,6 +48,6 @@ goto :wait_loop
 
 :launch_frontend
 echo Starting NovaCart frontend in a new window...
-start "NovaCart Frontend" /d "%~dp0frontend" cmd /k "startfrontend.bat"
+start "NovaCart Frontend" /d "%~dp0frontend" /b cmd /c "startfrontend.bat"
 
 echo Both servers are starting. You can close this window.
