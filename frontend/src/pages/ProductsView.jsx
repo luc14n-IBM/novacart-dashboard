@@ -14,6 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Navbar from '../components/Navbar';
 import { getProducts } from '../utils/api';
+import { ProductGrid, SearchGraph, Gear } from '../components/Icons';
 
 // Format currency helper
 function formatCurrency(value) {
@@ -55,7 +56,9 @@ export default function ProductsView() {
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <label>To</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          <button className="btn-apply" onClick={loadData}>Apply</button>
+          <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Gear size={13} />Apply
+          </button>
         </div>
 
         {error && (
@@ -77,7 +80,9 @@ export default function ProductsView() {
               Hint: truncate long product names to 20 chars
             */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SearchGraph size={18} />Top 10 Products by Revenue
+              </div>
               {/* TODO: add your bar chart here */}
               <div className="loading" style={{ height: 300 }}>
                 Implement the products bar chart
@@ -91,7 +96,9 @@ export default function ProductsView() {
               Format revenue with the formatCurrency helper above.
             */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ProductGrid size={18} />Product Details
+              </div>
               {/* TODO: add your table here */}
               <div className="loading" style={{ height: 300 }}>
                 Implement the products table

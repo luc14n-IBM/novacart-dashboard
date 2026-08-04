@@ -19,7 +19,7 @@ export default function LoginView() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamily: "var(--font, 'IBM Plex Sans', sans-serif)",
     }}>
       <div style={{
         background: 'var(--bg-card)',
@@ -31,14 +31,28 @@ export default function LoginView() {
         padding: '40px 36px 32px',
       }}>
 
-        {/* Logo / Brand */}
+        {/* Brand mark */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>🛒</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 14,
+              background: '#051B3F',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(5,27,63,0.18)',
+            }}>
+              {/* Cart — NovaCart brand mark */}
+              <svg width="40" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="NovaCart">
+                <path d="M2 4h4l3.5 14h14L27 8H9" stroke="#BBDEFB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="13.5" cy="27" r="2" fill="#00BFA5"/>
+                <circle cx="23" cy="27" r="2" fill="#00BFA5"/>
+              </svg>
+            </div>
+          </div>
           <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
             NovaCart
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
-            Sign in to your dashboard
+            Sign in to your account
           </div>
         </div>
 
