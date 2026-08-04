@@ -8,6 +8,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "=== NovaCart Dashboard Launcher ==="
+
+# ── Kill any existing backend process on port 8000 ────────────────────────────
+echo "Stopping any existing backend on port 8000..."
+lsof -ti tcp:8000 | xargs kill -9 2>/dev/null || true
+
 echo "Starting backend..."
 
 osascript -e "tell application \"Terminal\" to do script \"cd '$SCRIPT_DIR/backend' && bash startbackend.sh\""

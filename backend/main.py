@@ -4,13 +4,13 @@ main.py — NovaCart Account Dashboard API
 Built with FastAPI. Auto-generated docs at: http://localhost:8000/docs
 
 Endpoints:
-  GET /health                                  — service health check
-  GET /authorize                               — SPCS OAuth flow
-  GET /franchise/{id}/summary                  — overview stats
-  GET /franchise/{id}/orders                   — monthly order volume and revenue
-  GET /franchise/{id}/products                 — top products by revenue
-  GET /franchise/{id}/customers                — top customers by revenue
-  GET /franchise/{id}/countries                — revenue by country (city/state for US data)
+  GET /health                   — service health check
+  GET /authorize                — SPCS OAuth flow
+  GET /franchise/summary        — overview stats (revenue, orders, customers, date range)
+  GET /franchise/orders         — monthly order volume and revenue
+  GET /franchise/products       — top 10 products by revenue
+  GET /franchise/customers      — top 20 customers by revenue
+  GET /franchise/cities         — revenue by city/state
 
 Data schema (from the DE capstone Gold layer):
   fact_orders:   order_id, customer_id, product_id, order_date, amount, currency, status, quantity, date_key
@@ -18,8 +18,17 @@ Data schema (from the DE capstone Gold layer):
   dim_product:   product_id, name, category, price
   dim_date:      date_key, year, quarter, month, month_name, day_of_week
 
-Your job: implement the TODO sections in each endpoint.
-The connection and query helpers are already set up in connection.py.
+The connection and query helpers are in connection.py.
+
+Notes:
+  - Franchise ID scoping was removed from all endpoints. The original design
+    specified /franchise/{id}/* routes, but the current implementation returns
+    data across the full dataset with no per-franchise filtering. If multi-
+    franchise scoping is required in future, a franchise_id path parameter and
+    corresponding fact_orders filter will need to be added.
+  - All customer geography (addr_city, addr_state) is assumed to be United States
+    data. City/state labels are displayed without country context and the /cities
+    endpoint groups by city and state accordingly.
 """
 
 import os

@@ -6,6 +6,12 @@
 :: 3. Launches the frontend in a new window
 :: ─────────────────────────────────────────────────────────────────────────────
 
+:: ── Kill any existing backend process on port 8000 ───────────────────────────
+echo Stopping any existing backend on port 8000...
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":8000 " ^| findstr "LISTENING"') do (
+    taskkill /PID %%p /F >nul 2>&1
+)
+
 echo Starting NovaCart backend in a new window...
 start "NovaCart Backend" /d "%~dp0backend" cmd /k "startbackend.bat"
 

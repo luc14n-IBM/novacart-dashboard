@@ -73,7 +73,6 @@ export default function OrdersView() {
         {/* ── Loading state ──────────────────────────────────────────────── */}
         {loading && <div className="loading">Loading orders data…</div>}
 
-        {/* ── TODO: Build the UI here ────────────────────────────────────── */}
         {!loading && !error && (
           <>
             {/* Stat cards */}
