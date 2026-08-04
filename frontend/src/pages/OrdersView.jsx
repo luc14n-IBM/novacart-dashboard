@@ -18,6 +18,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Navbar from '../components/Navbar';
 import { getSummary, getOrders, getCities } from '../utils/api';
+import { DocumentChart, BarChartIcon, GlobePin, FlowNodes, Gear } from '../components/Icons';
 
 export default function OrdersView() {
   const [startDate, setStartDate] = useState('2022-01-01');
@@ -56,11 +57,14 @@ export default function OrdersView() {
 
         {/* ── Filter bar ─────────────────────────────────────────────────── */}
         <div className="filter-bar">
+          <FlowNodes size={14} style={{ color: 'var(--text-muted)' }} />
           <label>From</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <label>To</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          <button className="btn-apply" onClick={loadData}>Apply</button>
+          <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Gear size={13} />Apply
+          </button>
         </div>
 
         {/* ── Error state ────────────────────────────────────────────────── */}
@@ -84,15 +88,21 @@ export default function OrdersView() {
             */}
             <div className="stat-row">
               <div className="stat-box">
-                <div className="label">Total Revenue</div>
+                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <DocumentChart size={12} />Total Revenue
+                </div>
                 <div className="value">TODO</div>
               </div>
               <div className="stat-box">
-                <div className="label">Total Orders</div>
+                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <BarChartIcon size={12} />Total Orders
+                </div>
                 <div className="value">TODO</div>
               </div>
               <div className="stat-box">
-                <div className="label">Unique Customers</div>
+                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <GlobePin size={12} />Unique Customers
+                </div>
                 <div className="value">TODO</div>
               </div>
             </div>
@@ -104,7 +114,9 @@ export default function OrdersView() {
               Hint: XAxis dataKey="month_name", Bar dataKey="revenue"
             */}
             <div className="card" style={{ marginBottom: 20 }}>
-              <div className="section-title" style={{ marginBottom: 16 }}>Monthly Revenue</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <BarChartIcon size={18} />Monthly Revenue
+              </div>
               {/* TODO: add your chart here */}
               <div className="loading" style={{ height: 200 }}>
                 Implement the monthly revenue chart using recharts BarChart
@@ -119,7 +131,9 @@ export default function OrdersView() {
               Hint: .slice(0, 10) on cities array
             */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Revenue by City</div>
+              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <GlobePin size={18} />Revenue by City
+              </div>
               {/* TODO: add your chart here */}
               <div className="loading" style={{ height: 200 }}>
                 Implement the cities chart using recharts BarChart with layout="vertical"
