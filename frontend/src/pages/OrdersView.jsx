@@ -29,7 +29,11 @@ export default function OrdersView() {
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState(null);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 300_000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function loadData() {
     setLoading(true);
