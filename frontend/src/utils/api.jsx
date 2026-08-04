@@ -7,7 +7,7 @@
  * Locally, calls go directly to http://localhost:8000.
  */
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '/api';
 
 async function apiFetch(path) {
   const res = await fetch(`${BACKEND_URL}${path}`);

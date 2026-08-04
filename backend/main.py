@@ -139,11 +139,6 @@ def get_summary():
         "date_range": { "start": "2022-01-01", "end": "2022-12-31" }
     }
 
-    TODO: implement this endpoint.
-    Hints:
-      - Use fact_orders table
-      - Filter status IN ('delivered', 'shipped') for revenue
-      - Use MIN/MAX of order_date for date_range
     """
     conn = get_connection()
 
@@ -183,12 +178,6 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
         { "month": "2022-02", "month_name": "February", "order_count": 910, "revenue": 141230.00 }
     ]
 
-    TODO: implement this endpoint.
-    Hints:
-      - JOIN fact_orders with dim_date on date_key
-      - GROUP BY year, month, month_name
-      - Filter order_date between start and end
-      - Only include delivered + shipped for revenue
     """
     conn = get_connection()
 
@@ -220,11 +209,6 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
           "units_sold": 342, "revenue": 30578.58 }
     ]
 
-    TODO: implement this endpoint.
-    Hints:
-      - JOIN fact_orders with dim_product on product_id
-      - GROUP BY product_id, name, category
-      - ORDER BY revenue DESC, LIMIT 10
     """
     conn = get_connection()
 
@@ -258,12 +242,6 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
           "state": "TX", "total_orders": 14, "total_spent": 1240.50 }
     ]
 
-    TODO: implement this endpoint.
-    Hints:
-      - JOIN fact_orders with dim_customer on customer_id
-      - Only use dim_customer WHERE is_current = 1
-      - GROUP BY customer_id, name, addr_city, addr_state
-      - ORDER BY total_spent DESC, LIMIT 20
     """
     conn = get_connection()
 
@@ -299,11 +277,6 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
         { "city": "Austin", "state": "TX", "order_count": 420, "revenue": 38430.00 }
     ]
 
-    TODO: implement this endpoint.
-    Hints:
-      - JOIN fact_orders with dim_customer (is_current = 1) on customer_id
-      - GROUP BY addr_city, addr_state
-      - ORDER BY revenue DESC
     """
     conn = get_connection()
 
