@@ -4,7 +4,7 @@
 :: 1. Checks Python 3.11 is installed
 :: 2. Creates /venv/ if it doesn't exist
 :: 3. Installs requirements only when requirements.txt has changed
-:: 4. Starts the FastAPI dev server on http://localhost:8000
+:: 4. Starts the FastAPI dev server on http://127.0.0.1:8000
 :: ─────────────────────────────────────────────────────────────────────────────
 
 :: Pin all relative paths to the script's own directory so this bat works
@@ -73,7 +73,7 @@ if errorlevel 1 (
 
 :: ── 4. Start the server ───────────────────────────────────────────────────────
 echo.
-echo Starting NovaCart backend at http://localhost:8000
+echo Starting NovaCart backend at http://127.0.0.1:8000
 echo Press Ctrl+C to stop.
 echo.
 call "%HERE%\venv\Scripts\activate"

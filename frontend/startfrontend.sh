@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # frontend/startfrontend.sh — macOS frontend launcher for the NovaCart dashboard
 # Ensures Node.js is installed, syncs npm dependencies when package.json changes,
-# then starts the Vite dev server on http://localhost:3000.
+# then starts the Vite dev server on http://127.0.0.1:3000.
 
 set -euo pipefail
 
@@ -59,7 +59,7 @@ fi
 # 3. Start the Vite dev server
 # ---------------------------------------------------------------------------
 echo ""
-echo "Starting frontend dev server on http://localhost:3000 ..."
+echo "Starting frontend dev server on http://127.0.0.1:3000 ..."
 echo "(Press Ctrl+C to stop)"
 echo ""
 
