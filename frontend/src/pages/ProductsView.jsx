@@ -69,33 +69,46 @@ export default function ProductsView() {
         {!loading && !error && (
           <div className="grid-2">
 
-            {/*
-              STEP 1 — Top products bar chart
-              products is: [{ product_id, name, category, units_sold, revenue }]
-              Use a horizontal BarChart (layout="vertical").
-              XAxis type="number", YAxis type="category" dataKey="name"
-              Hint: truncate long product names to 20 chars
-            */}
+            {/* Top products horizontal bar chart */}
             <div className="card">
               <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
-              {/* TODO: add your bar chart here */}
-              <div className="loading" style={{ height: 300 }}>
-                Implement the products bar chart
-              </div>
+              <ResponsiveContainer width="100%" height={340}>
+                <BarChart
+                  layout="vertical"
+                  data={products.map(p => ({ ...p, shortName: p.name.length > 22 ? p.name.slice(0, 22) + '…' : p.name }))}
+                  margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
+                >
+                  <XAxis type="number" tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+                  <YAxis type="category" dataKey="shortName" width={140} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+                  <Tooltip formatter={v => [formatCurrency(v), 'Revenue']} labelFormatter={(_, payload) => payload?.[0]?.payload?.name ?? ''} />
+                  <Bar dataKey="revenue" fill="var(--accent)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
-            {/*
-              STEP 2 — Products table
-              Show all products in a table: Name | Category | Units Sold | Revenue
-              Hint: use an HTML table or build with divs.
-              Format revenue with the formatCurrency helper above.
-            */}
+            {/* Products detail table */}
             <div className="card">
               <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
-              {/* TODO: add your table here */}
-              <div className="loading" style={{ height: 300 }}>
-                Implement the products table
-              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <th style={{ padding: '8px 10px' }}>Name</th>
+                    <th style={{ padding: '8px 10px' }}>Category</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'right' }}>Units Sold</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'right' }}>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p, i) => (
+                    <tr key={p.product_id} style={{ background: i % 2 === 0 ? 'transparent' : 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '8px 10px', color: 'var(--text-primary)', fontWeight: 500 }}>{p.name}</td>
+                      <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{p.category}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>{p.units_sold?.toLocaleString()}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: 'var(--accent)' }}>{formatCurrency(p.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
           </div>

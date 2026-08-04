@@ -95,28 +95,38 @@ export default function CustomersView() {
               Top Customers by Revenue
             </div>
 
-            {/*
-              STEP 1 — Sortable table
-              sorted is: [{ customer_id, name, city, state, total_orders, total_spent }]
-
-              Build a table with these columns:
-                Name | City | State | Orders | Total Spent
-
-              Each column header should be clickable and call handleSort(columnName).
-              Use sortIcon(columnName) to show ↑ or ↓ on the active sort column.
-
-              Hint: use a standard HTML <table> with <thead> and <tbody>.
-              Style alternating rows with different background colors.
-              Format total_spent with formatCurrency().
-            */}
-
-            {/* TODO: add your sortable table here */}
-            <div className="loading" style={{ height: 400 }}>
-              Implement the sortable customers table.
-              Data available in: sorted (array of customer objects)
-              Sorting state: sortBy="{sortBy}", sortDir="{sortDir}"
-              Use handleSort(column) to handle header clicks.
-            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {[
+                    { key: 'name',         label: 'Name' },
+                    { key: 'city',         label: 'City' },
+                    { key: 'state',        label: 'State' },
+                    { key: 'total_orders', label: 'Orders' },
+                    { key: 'total_spent',  label: 'Total Spent' },
+                  ].map(col => (
+                    <th
+                      key={col.key}
+                      onClick={() => handleSort(col.key)}
+                      style={{ padding: '8px 10px', cursor: 'pointer', userSelect: 'none', textAlign: col.key === 'total_orders' || col.key === 'total_spent' ? 'right' : 'left' }}
+                    >
+                      {col.label}{sortIcon(col.key)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((c, i) => (
+                  <tr key={c.customer_id} style={{ background: i % 2 === 0 ? 'transparent' : 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '8px 10px', fontWeight: 500, color: 'var(--text-primary)' }}>{c.name}</td>
+                    <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{c.city}</td>
+                    <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{c.state}</td>
+                    <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>{c.total_orders}</td>
+                    <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: 'var(--accent)' }}>{formatCurrency(c.total_spent)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
           </div>
         )}
