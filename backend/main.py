@@ -269,7 +269,7 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
           AND o.status IN ('delivered', 'shipped')
         GROUP BY o.customer_id, c.name, c.addr_city, c.addr_state
         ORDER BY total_spent DESC
-        LIMIT 20
+        LIMIT 10
     """, (start, end))
 
     return results
