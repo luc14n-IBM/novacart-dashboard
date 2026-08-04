@@ -9,9 +9,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "=== NovaCart Dashboard Launcher ==="
 
-# ── Kill any existing backend process on port 8000 ────────────────────────────
-echo "Stopping any existing backend on port 8000..."
+# ── Kill any existing backend (by port AND process name) ──────────────────────
+echo "Stopping any existing backend..."
+
+# Kill by port
 lsof -ti tcp:8000 | xargs kill -9 2>/dev/null || true
+
+# Kill any lingering uvicorn processes by name
+pkill -9 -f "uvicorn main:app" 2>/dev/null || true
+
+# Brief pause to let the OS release the port before binding again
+sleep 1
 
 echo "Starting backend..."
 

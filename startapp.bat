@@ -6,22 +6,33 @@
 :: 3. Launches the frontend in a new window
 :: ─────────────────────────────────────────────────────────────────────────────
 
-:: ── Kill any existing backend process on port 8000 ───────────────────────────
-echo Stopping any existing backend on port 8000...
+:: ── Kill any existing backend (by port AND process name) ─────────────────────
+echo Stopping any existing backend...
+
+:: Close the existing "NovaCart Backend" console window if open
+taskkill /FI "WINDOWTITLE eq NovaCart Backend" /F >nul 2>&1
+
+:: Kill any uvicorn process still holding port 8000
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":8000 " ^| findstr "LISTENING"') do (
     taskkill /PID %%p /F >nul 2>&1
 )
+
+:: Kill any lingering uvicorn processes by name
+taskkill /IM uvicorn.exe /F >nul 2>&1
+
+:: Brief pause to let the OS release the port before binding again
+timeout /t 2 /nobreak >nul
 
 echo Starting NovaCart backend in a new window...
 start "NovaCart Backend" /d "%~dp0backend" cmd /k "startbackend.bat"
 
 :: ── Poll /health until backend responds ──────────────────────────────────────
-echo Waiting for backend to be ready at http://localhost:8000/health ...
+echo Waiting for backend to be ready at http://127.0.0.1:8000/health ...
 set RETRIES=0
 set MAX_RETRIES=30
 
 :wait_loop
-curl -s -o nul -w "%%{http_code}" http://localhost:8000/health 2>nul | findstr /x "200" >nul
+curl -s -o nul -w "%%{http_code}" http://127.0.0.1:8000/health 2>nul | findstr /x "200" >nul
 if not errorlevel 1 (
     echo   Backend is up!
     goto :launch_frontend
