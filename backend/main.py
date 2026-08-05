@@ -33,6 +33,7 @@ Notes:
 
 import os
 import time
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -44,6 +45,22 @@ load_dotenv()
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
+PORT              = int(os.getenv("PORT", 8000))
+CLIENT_VALIDATION = os.getenv("CLIENT_VALIDATION", "Dev")
+START_TIME        = time.time()
+
+
+# Replaces the deprecated @app.on_event("startup") pattern
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("\nStarting NovaCart Dashboard API")
+    print(f"Port:            {PORT}")
+    print(f"Data backend:    {os.getenv('DATA_BACKEND', 'sqlite')}")
+    print(f"Validation mode: {CLIENT_VALIDATION}")
+    print(f"Docs:            http://localhost:{PORT}/docs\n")
+    yield  # application runs here
+
+
 app = FastAPI(
     title="NovaCart Account Dashboard API",
     description=(
@@ -51,11 +68,8 @@ app = FastAPI(
         "Built on top of the Gold data layer produced by the Data Engineering team."
     ),
     version="1.0.0",
+    lifespan=lifespan,
 )
-
-PORT              = int(os.getenv("PORT", 8000))
-CLIENT_VALIDATION = os.getenv("CLIENT_VALIDATION", "Dev")
-START_TIME        = time.time()
 
 # CORS — only needed for local development
 # In SPCS, the NGINX router handles routing so CORS is not required
@@ -66,17 +80,6 @@ if CLIENT_VALIDATION == "Dev":
         allow_methods=["GET"],
         allow_headers=["*"],
     )
-
-
-# ── Startup log ───────────────────────────────────────────────────────────────
-
-@app.on_event("startup")
-async def startup():
-    print("\nStarting NovaCart Dashboard API")
-    print(f"Port:            {PORT}")
-    print(f"Data backend:    {os.getenv('DATA_BACKEND', 'sqlite')}")
-    print(f"Validation mode: {CLIENT_VALIDATION}")
-    print(f"Docs:            http://localhost:{PORT}/docs\n")
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
