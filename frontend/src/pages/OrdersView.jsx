@@ -1,31 +1,33 @@
 /**
  * OrdersView.js — Orders Overview page
  *
- * This page shows:
- *   - Stat cards: total revenue, total orders, unique customers
- *   - A bar/line chart of monthly revenue over time
- *   - A bar chart of revenue by city/state
- *   - A date range filter
- *
- * The data fetching is already wired up.
- * Your job: implement the UI — charts, stat cards, and layout.
- *
- * Useful libraries already installed:
- *   - recharts: BarChart, LineChart, XAxis, YAxis, Tooltip, ResponsiveContainer
+ * Charts:
+ *   - Monthly Revenue: Bar / Line / Area toggle
+ *   - Revenue by City: Horizontal Bar / Vertical Bar toggle
  */
 
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import {
+  BarChart, Bar,
+  LineChart, Line,
+  AreaChart, Area,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts';
 import Navbar from '../components/Navbar';
 import { getSummary, getOrders, getCities } from '../utils/api';
-import { DocumentChart, BarChartIcon, GlobePin, FlowNodes, Gear, Calendar } from '../components/Icons';
+import {
+  DocumentChart, BarChartIcon, GlobePin, FlowNodes, Gear, Calendar,
+  LineChartIcon, AreaChartIcon, HBarChartIcon,
+} from '../components/Icons';
 
 export default function OrdersView({ startDate, endDate, setStartDate, setEndDate }) {
-  const [summary,   setSummary]   = useState(null);
-  const [orders,    setOrders]    = useState([]);
-  const [cities,    setCities]    = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
+  const [summary,         setSummary]         = useState(null);
+  const [orders,          setOrders]          = useState([]);
+  const [cities,          setCities]          = useState([]);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState(null);
+  const [revenueView,     setRevenueView]     = useState('bar');   // 'bar' | 'line' | 'area'
+  const [cityView,        setCityView]        = useState('hbar');  // 'hbar' | 'vbar'
 
   useEffect(() => {
     loadData();
@@ -51,6 +53,13 @@ export default function OrdersView({ startDate, endDate, setStartDate, setEndDat
       setLoading(false);
     }
   }
+
+  const revenueTooltip = { formatter: v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue'] };
+  const yTickFmt = v => `$${(v / 1000).toFixed(0)}K`;
+  const xTickProps = { fontSize: 12, fill: 'var(--text-muted)' };
+  const gridStroke = 'var(--border)';
+
+  const cityData = cities.slice(0, 10).map(c => ({ ...c, label: `${c.city}, ${c.state}` }));
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -113,39 +122,101 @@ export default function OrdersView({ startDate, endDate, setStartDate, setEndDat
               </div>
             </div>
 
-            {/* Monthly revenue bar chart */}
+            {/* ── Monthly Revenue chart ───────────────────────────────────── */}
             <div className="card" style={{ marginBottom: 20 }}>
-              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <BarChartIcon size={18} />Monthly Revenue
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <BarChartIcon size={18} />Monthly Revenue
+                </div>
+                <div className="chart-toggle">
+                  <button className={revenueView === 'bar'  ? 'active' : ''} onClick={() => setRevenueView('bar')}>
+                    <BarChartIcon size={13} />Bar
+                  </button>
+                  <button className={revenueView === 'line' ? 'active' : ''} onClick={() => setRevenueView('line')}>
+                    <LineChartIcon size={13} />Line
+                  </button>
+                  <button className={revenueView === 'area' ? 'active' : ''} onClick={() => setRevenueView('area')}>
+                    <AreaChartIcon size={13} />Area
+                  </button>
+                </div>
               </div>
+
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={orders} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="month_name" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
-                  <YAxis tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} width={56} />
-                  <Tooltip formatter={v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
-                  <Bar dataKey="revenue" fill="var(--accent)" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                {revenueView === 'bar' ? (
+                  <BarChart data={orders} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                    <XAxis dataKey="month_name" tick={xTickProps} />
+                    <YAxis tickFormatter={yTickFmt} tick={xTickProps} width={56} />
+                    <Tooltip {...revenueTooltip} />
+                    <Bar dataKey="revenue" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                ) : revenueView === 'line' ? (
+                  <LineChart data={orders} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                    <XAxis dataKey="month_name" tick={xTickProps} />
+                    <YAxis tickFormatter={yTickFmt} tick={xTickProps} width={56} />
+                    <Tooltip {...revenueTooltip} />
+                    <Line type="monotone" dataKey="revenue" stroke="var(--blue)" strokeWidth={2} dot={{ r: 4, fill: 'var(--blue)' }} activeDot={{ r: 5 }} />
+                  </LineChart>
+                ) : (
+                  <AreaChart data={orders} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+                    <defs>
+                      <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor="var(--accent)" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.03} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                    <XAxis dataKey="month_name" tick={xTickProps} />
+                    <YAxis tickFormatter={yTickFmt} tick={xTickProps} width={56} />
+                    <Tooltip {...revenueTooltip} />
+                    <Area type="monotone" dataKey="revenue" stroke="var(--accent)" strokeWidth={2} fill="url(#revGrad)" />
+                  </AreaChart>
+                )}
               </ResponsiveContainer>
             </div>
 
-            {/* Revenue by city horizontal bar chart — top 10 */}
+            {/* ── Revenue by City chart ───────────────────────────────────── */}
             <div className="card">
-              <div className="section-title" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <GlobePin size={18} />Revenue by City (Top 10)
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <GlobePin size={18} />Revenue by City (Top 10)
+                </div>
+                <div className="chart-toggle">
+                  <button className={cityView === 'hbar' ? 'active' : ''} onClick={() => setCityView('hbar')}>
+                    <HBarChartIcon size={13} />Horizontal
+                  </button>
+                  <button className={cityView === 'vbar' ? 'active' : ''} onClick={() => setCityView('vbar')}>
+                    <BarChartIcon size={13} />Vertical
+                  </button>
+                </div>
               </div>
+
               <ResponsiveContainer width="100%" height={320}>
-                <BarChart
-                  layout="vertical"
-                  data={cities.slice(0, 10).map(c => ({ ...c, label: `${c.city}, ${c.state}` }))}
-                  margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                  <XAxis type="number" tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
-                  <YAxis type="category" dataKey="label" width={120} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
-                  <Tooltip formatter={v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
-                  <Bar dataKey="revenue" fill="var(--blue)" radius={[0, 4, 4, 0]} />
-                </BarChart>
+                {cityView === 'hbar' ? (
+                  <BarChart
+                    layout="vertical"
+                    data={cityData}
+                    margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} horizontal={false} />
+                    <XAxis type="number" tickFormatter={yTickFmt} tick={xTickProps} />
+                    <YAxis type="category" dataKey="label" width={120} tick={xTickProps} />
+                    <Tooltip formatter={v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
+                    <Bar dataKey="revenue" fill="var(--blue)" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                ) : (
+                  <BarChart
+                    data={cityData}
+                    margin={{ top: 4, right: 16, left: 0, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                    <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} angle={-40} textAnchor="end" interval={0} />
+                    <YAxis tickFormatter={yTickFmt} tick={xTickProps} width={56} />
+                    <Tooltip formatter={v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
+                    <Bar dataKey="revenue" fill="var(--blue)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                )}
               </ResponsiveContainer>
             </div>
           </>
