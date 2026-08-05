@@ -46,17 +46,20 @@ jobs:
         run: pip install snowflake-cli-labs==3.9.0 --quiet
 
       - name: Configure Snowflake connection
+        env:
+          SNOW_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOW_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOW_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.snowflake
           # Write the private key from the GitHub secret into a tmpfs-backed path
-          printf '%s\n' "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > /tmp/rsa_key.p8
+          printf '%s\n' "$SNOW_KEY" > /tmp/rsa_key.p8
           chmod 600 /tmp/rsa_key.p8
-          # Write config using secret values — no hardcoded account or user
-          # Note: heredoc must NOT be indented — TOML section headers cannot have leading spaces
-          cat > ~/.snowflake/config.toml << 'EOF'
+          # Write config — heredoc at column 0 so TOML headers have no leading spaces
+          cat > ~/.snowflake/config.toml << EOF
 [connections.spcs]
-account = "${{ secrets.SNOWFLAKE_ACCOUNT }}"
-user = "${{ secrets.SNOWFLAKE_USER }}"
+account = "$SNOW_ACCOUNT"
+user = "$SNOW_USER"
 authenticator = "SNOWFLAKE_JWT"
 private_key_path = "/tmp/rsa_key.p8"
 role = "NOVACART_ADMIN_ROLE"
@@ -83,8 +86,9 @@ EOF
         run: echo "ts=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
       - name: Build & push backend
+        env:
+          TAG: ${{ steps.tag.outputs.ts }}
         run: |
-          TAG=${{ steps.tag.outputs.ts }}
           docker build --no-cache --platform linux/amd64 \
             -t backend_service_image_group${GROUP}:${TAG} ./backend
           docker tag backend_service_image_group${GROUP}:${TAG} \
@@ -95,8 +99,9 @@ EOF
           docker push $REPO_URL/backend_service_image_group${GROUP}:latest
 
       - name: Build & push frontend
+        env:
+          TAG: ${{ steps.tag.outputs.ts }}
         run: |
-          TAG=${{ steps.tag.outputs.ts }}
           docker build --platform linux/amd64 \
             -t frontend_service_image_group${GROUP}:${TAG} ./frontend
           docker tag frontend_service_image_group${GROUP}:${TAG} \
@@ -107,8 +112,9 @@ EOF
           docker push $REPO_URL/frontend_service_image_group${GROUP}:latest
 
       - name: Build & push router
+        env:
+          TAG: ${{ steps.tag.outputs.ts }}
         run: |
-          TAG=${{ steps.tag.outputs.ts }}
           docker build --platform linux/amd64 \
             -t router_service_image_group${GROUP}:${TAG} ./router
           docker tag router_service_image_group${GROUP}:${TAG} \
@@ -119,8 +125,11 @@ EOF
           docker push $REPO_URL/router_service_image_group${GROUP}:latest
 
       - name: Recreate SPCS service
+        env:
+          SNOW_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOW_USER: ${{ secrets.SNOWFLAKE_USER }}
+          TAG: ${{ steps.tag.outputs.ts }}
         run: |
-          TAG=${{ steps.tag.outputs.ts }}
           snow sql --connection spcs -q "
           USE ROLE NOVACART_ADMIN_ROLE;
           USE DATABASE $DB;
@@ -137,8 +146,8 @@ EOF
                 PORT: '8000'
                 DATA_BACKEND: snowflake
                 CLIENT_VALIDATION: Snowflake
-                SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-                SNOWFLAKE_USERNAME: ${{ secrets.SNOWFLAKE_USER }}
+                SNOWFLAKE_ACCOUNT: $SNOW_ACCOUNT
+                SNOWFLAKE_USERNAME: $SNOW_USER
                 SNOWFLAKE_ROLE: NOVACART_APP_ROLE
                 SNOWFLAKE_DATABASE: NOVACART_DB
                 SNOWFLAKE_SCHEMA: APP
@@ -163,6 +172,8 @@ EOF
           "
 
       - name: Wait and report URL
+        env:
+          COMMIT_SHA: ${{ github.sha }}
         run: |
           echo "Waiting for service to be ready..."
           sleep 120
@@ -172,8 +183,8 @@ EOF
               --format json > /tmp/endpoints.json || true
             URL=$(python3 .github/scripts/get_url.py || echo "")
             if [ -n "$URL" ]; then
-              echo "## ✅ Deployed — Group $GROUP" >> $GITHUB_STEP_SUMMARY
-              echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+              echo "## Deployed - Group $GROUP" >> $GITHUB_STEP_SUMMARY
+              echo "**Commit:** $COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
               echo "**URL:** https://$URL" >> $GITHUB_STEP_SUMMARY
               echo "App URL: https://$URL"
               exit 0
