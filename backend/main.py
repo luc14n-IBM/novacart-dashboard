@@ -180,6 +180,8 @@ def get_summary(start: str = None, end: str = None):
         """)
 
     row = results[0]
+    if row["total_orders"] is None or row["total_orders"] == 0:
+        raise HTTPException(status_code=404, detail="No data found for the given date range")
     return {
         "total_revenue":    round(row["total_revenue"] or 0, 2),
         "total_orders":     row["total_orders"],
@@ -221,6 +223,8 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
         ORDER BY d.year, d.month
     """, (start, end))
 
+    if not results:
+        raise HTTPException(status_code=404, detail="No order data found for the given date range")
     return results
 
 
@@ -254,6 +258,8 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
         LIMIT 10
     """, (start, end))
 
+    if not results:
+        raise HTTPException(status_code=404, detail="No product data found for the given date range")
     return results
 
 
@@ -289,6 +295,8 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
         LIMIT 20
     """, (start, end))
 
+    if not results:
+        raise HTTPException(status_code=404, detail="No customer data found for the given date range")
     return results
 
 
@@ -321,4 +329,6 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
         ORDER BY revenue DESC
     """, (start, end))
 
+    if not results:
+        raise HTTPException(status_code=404, detail="No city data found for the given date range")
     return results
