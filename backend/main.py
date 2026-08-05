@@ -132,13 +132,17 @@ def authorize(request: Request):
 # ── Franchise endpoints ───────────────────────────────────────────────────────
 
 @app.get("/franchise/summary", tags=["Franchise"])
-def get_summary():
+def get_summary(start: str = None, end: str = None):
     """
-    Returns an overview of all orders in the database:
+    Returns an overview of orders in the database:
     - Total revenue (delivered + shipped orders only)
     - Total orders
     - Number of unique customers
     - Date range of available data
+
+    Query parameters (optional):
+      start: start date (YYYY-MM-DD)
+      end:   end date (YYYY-MM-DD)
 
     Expected response:
     {
@@ -151,16 +155,29 @@ def get_summary():
     """
     conn = get_connection()
 
-    results = execute_query(conn, """
-        SELECT
-            COUNT(DISTINCT order_id)    AS total_orders,
-            SUM(amount)                 AS total_revenue,
-            COUNT(DISTINCT customer_id) AS unique_customers,
-            MIN(order_date)             AS start_date,
-            MAX(order_date)             AS end_date
-        FROM fact_orders
-        WHERE status IN ('delivered', 'shipped')
-    """)
+    if start and end:
+        results = execute_query(conn, """
+            SELECT
+                COUNT(DISTINCT order_id)    AS total_orders,
+                SUM(amount)                 AS total_revenue,
+                COUNT(DISTINCT customer_id) AS unique_customers,
+                MIN(order_date)             AS start_date,
+                MAX(order_date)             AS end_date
+            FROM fact_orders
+            WHERE status IN ('delivered', 'shipped')
+              AND order_date BETWEEN ? AND ?
+        """, (start, end))
+    else:
+        results = execute_query(conn, """
+            SELECT
+                COUNT(DISTINCT order_id)    AS total_orders,
+                SUM(amount)                 AS total_revenue,
+                COUNT(DISTINCT customer_id) AS unique_customers,
+                MIN(order_date)             AS start_date,
+                MAX(order_date)             AS end_date
+            FROM fact_orders
+            WHERE status IN ('delivered', 'shipped')
+        """)
 
     row = results[0]
     return {
