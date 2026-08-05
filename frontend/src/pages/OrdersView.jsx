@@ -18,7 +18,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Navbar from '../components/Navbar';
 import { getSummary, getOrders, getCities } from '../utils/api';
-import { DocumentChart, BarChartIcon, GlobePin, FlowNodes, Gear } from '../components/Icons';
+import { DocumentChart, BarChartIcon, GlobePin, FlowNodes, Gear, Calendar } from '../components/Icons';
 
 export default function OrdersView() {
   const [startDate, setStartDate] = useState('2022-01-01');
@@ -102,7 +102,9 @@ export default function OrdersView() {
                 <div className="value">{summary?.unique_customers?.toLocaleString()}</div>
               </div>
               <div className="stat-box">
-                <div className="label">Date Range</div>
+                <div className="label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Calendar size={12} />Date Range
+                </div>
                 <div className="value" style={{ fontSize: 14 }}>
                   {summary?.date_range?.start} – {summary?.date_range?.end}
                 </div>
