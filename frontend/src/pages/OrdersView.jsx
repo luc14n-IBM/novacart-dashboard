@@ -31,7 +31,7 @@ export default function OrdersView({ startDate, endDate, setStartDate, setEndDat
     loadData();
     const interval = setInterval(loadData, 300_000);
     return () => clearInterval(interval);
-  }, [startDate, endDate]);
+  }, []);
 
   async function loadData() {
     setLoading(true);
