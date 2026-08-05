@@ -31,14 +31,14 @@ export default function OrdersView({ startDate, endDate, setStartDate, setEndDat
     loadData();
     const interval = setInterval(loadData, 300_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [startDate, endDate]);
 
   async function loadData() {
     setLoading(true);
     setError(null);
     try {
       const [s, o, c] = await Promise.all([
-        getSummary(),
+        getSummary(startDate, endDate),
         getOrders(startDate, endDate),
         getCities(startDate, endDate),
       ]);
