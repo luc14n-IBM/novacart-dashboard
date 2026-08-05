@@ -20,16 +20,18 @@ import Navbar from '../components/Navbar';
 import { getSummary, getOrders, getCities } from '../utils/api';
 import { DocumentChart, BarChartIcon, GlobePin, FlowNodes, Gear, Calendar } from '../components/Icons';
 
-export default function OrdersView() {
-  const [startDate, setStartDate] = useState('2022-01-01');
-  const [endDate,   setEndDate]   = useState('2022-12-31');
+export default function OrdersView({ startDate, endDate, setStartDate, setEndDate }) {
   const [summary,   setSummary]   = useState(null);
   const [orders,    setOrders]    = useState([]);
   const [cities,    setCities]    = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState(null);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 300_000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function loadData() {
     setLoading(true);

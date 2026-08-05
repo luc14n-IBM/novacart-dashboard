@@ -20,9 +20,7 @@ function formatCurrency(value) {
   return `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export default function CustomersView() {
-  const [startDate,  setStartDate]  = useState('2022-01-01');
-  const [endDate,    setEndDate]    = useState('2022-12-31');
+export default function CustomersView({ startDate, endDate, setStartDate, setEndDate }) {
   const [customers,  setCustomers]  = useState([]);
   const [sortBy,     setSortBy]     = useState('total_spent');
   const [sortDir,    setSortDir]    = useState('desc');

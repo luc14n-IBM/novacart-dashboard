@@ -80,6 +80,32 @@ Runs from the `frontend/` directory. Steps:
 
 ---
 
+## Install Git Hooks (one-time, per developer)
+
+The project includes a pre-push hook that runs the test suite before every `git push`, blocking the push if any test fails.
+
+Run this **once** after cloning (or after a teammate adds new hooks):
+
+### Windows
+
+```bat
+hooks\install-hooks.bat
+```
+
+### macOS
+
+```bash
+bash hooks/install-hooks.sh
+```
+
+Once installed, every `git push` will automatically run:
+1. Backend tests — `pytest test_api.py`
+2. Frontend tests — `npm run test`
+
+If tests fail, the push is blocked with a clear message. In an emergency you can bypass with `git push --no-verify`.
+
+---
+
 ## Requirements
 
 ### Windows

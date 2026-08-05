@@ -24,9 +24,7 @@ function formatCurrency(value) {
   return `$${value.toFixed(2)}`;
 }
 
-export default function ProductsView() {
-  const [startDate, setStartDate] = useState('2022-01-01');
-  const [endDate,   setEndDate]   = useState('2022-12-31');
+export default function ProductsView({ startDate, endDate, setStartDate, setEndDate }) {
   const [products,  setProducts]  = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState(null);
