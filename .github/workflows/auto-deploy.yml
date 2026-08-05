@@ -52,14 +52,15 @@ jobs:
           printf '%s\n' "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > /tmp/rsa_key.p8
           chmod 600 /tmp/rsa_key.p8
           # Write config using secret values — no hardcoded account or user
-          cat > ~/.snowflake/config.toml << EOF
-          [connections.spcs]
-          account = "${{ secrets.SNOWFLAKE_ACCOUNT }}"
-          user = "${{ secrets.SNOWFLAKE_USER }}"
-          authenticator = "SNOWFLAKE_JWT"
-          private_key_path = "/tmp/rsa_key.p8"
-          role = "NOVACART_ADMIN_ROLE"
-          EOF
+          # Note: heredoc must NOT be indented — TOML section headers cannot have leading spaces
+          cat > ~/.snowflake/config.toml << 'EOF'
+[connections.spcs]
+account = "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+user = "${{ secrets.SNOWFLAKE_USER }}"
+authenticator = "SNOWFLAKE_JWT"
+private_key_path = "/tmp/rsa_key.p8"
+role = "NOVACART_ADMIN_ROLE"
+EOF
           chmod 0600 ~/.snowflake/config.toml
 
       - name: Verify key file permissions
@@ -75,13 +76,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Snowflake registry
-        run: |
-          snow spcs image-registry login \
-            --connection spcs \
-            --account "${{ secrets.SNOWFLAKE_ACCOUNT }}" \
-            --user "${{ secrets.SNOWFLAKE_USER }}" \
-            --authenticator SNOWFLAKE_JWT \
-            --private-key-file /tmp/rsa_key.p8
+        run: snow spcs image-registry login --connection spcs
 
       - name: Generate image tag
         id: tag
