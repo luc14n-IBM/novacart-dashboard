@@ -54,9 +54,9 @@ class TestAuthorize:
         assert data["status"] == "authorized"
 
     # SPCS mode — missing header
-    def test_spcs_missing_header_returns_422(self, spcs_client):
+    def test_spcs_missing_header_returns_401(self, spcs_client):
         res = spcs_client.get("/authorize")
-        assert res.status_code == 422
+        assert res.status_code == 401
 
     # SPCS mode — header present
     def test_spcs_with_header_returns_user(self, spcs_client):

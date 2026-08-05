@@ -143,6 +143,8 @@ jobs:
                 DATA_BACKEND: snowflake
                 CLIENT_VALIDATION: Snowflake
                 SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                SNOWFLAKE_USERNAME: ${{ secrets.SNOWFLAKE_USER }}
+                SNOWFLAKE_ROLE: NOVACART_APP_ROLE
                 SNOWFLAKE_DATABASE: NOVACART_DB
                 SNOWFLAKE_SCHEMA: APP
                 SNOWFLAKE_WAREHOUSE: NOVACART_APP_WH
