@@ -159,3 +159,60 @@ export function Calendar({ size = 16 }) {
   );
 }
 
+
+// Line Chart — line/trend chart view toggle
+export function LineChartIcon({ size = 16 }) {
+  return (
+    <svg style={base(size)} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="1,13 4,8 7,10 10,5 13,7 15,3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <line x1="1" y1="14.5" x2="15" y2="14.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Area Chart — area/fill chart view toggle
+export function AreaChartIcon({ size = 16 }) {
+  return (
+    <svg style={base(size)} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="1,13 4,8 7,10 10,5 13,7 15,3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <polygon points="1,13 4,8 7,10 10,5 13,7 15,3 15,14.5 1,14.5" fill="currentColor" fillOpacity="0.15" stroke="none"/>
+      <line x1="1" y1="14.5" x2="15" y2="14.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Horizontal Bars — horizontal bar chart view toggle
+export function HBarChartIcon({ size = 16 }) {
+  return (
+    <svg style={base(size)} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="2"  width="10" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.3"/>
+      <rect x="1" y="6.5" width="7"  height="3" rx="0.5" stroke="currentColor" strokeWidth="1.3"/>
+      <rect x="1" y="11" width="13" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.3"/>
+      <line x1="1" y1="1" x2="1" y2="15" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Table — table view toggle
+export function TableIcon({ size = 16 }) {
+  return (
+    <svg style={base(size)} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="14" height="14" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+      <line x1="1" y1="5" x2="15" y2="5" stroke="currentColor" strokeWidth="1.1"/>
+      <line x1="1" y1="9" x2="15" y2="9" stroke="currentColor" strokeWidth="1.1"/>
+      <line x1="1" y1="13" x2="15" y2="13" stroke="currentColor" strokeWidth="1.1"/>
+      <line x1="6" y1="5" x2="6" y2="15" stroke="currentColor" strokeWidth="1.1"/>
+    </svg>
+  );
+}
+
+
+// Pie / Donut Chart — category breakdown toggle
+export function PieChartIcon({ size = 16 }) {
+  return (
+    <svg style={base(size)} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 2a6 6 0 1 0 6 6H8V2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+      <path d="M10 2.8A6 6 0 0 1 14 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    </svg>
+  );
+}
