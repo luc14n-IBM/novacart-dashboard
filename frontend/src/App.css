@@ -16,6 +16,7 @@
    ────────────────────────────────────────────────────────────────────── */
 
 :root {
+  color-scheme:    light;
   --bg-primary:    #F0F4FF;        /* off-white with blue tint — page bg    */
   --bg-card:       #FFFFFF;        /* white card surfaces                   */
   --bg-section:    #BBDEFB;        /* Light Blue — section/data tones       */
@@ -43,6 +44,7 @@
 }
 
 [data-theme="dark"] {
+  color-scheme:    dark;
   --bg-primary:    #051B3F;        /* Navy — dark page bg                   */
   --bg-card:       #0A2550;        /* slightly lighter navy for cards       */
   --bg-section:    #0D2B5E;        /* deep navy section bg                  */
