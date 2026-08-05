@@ -141,3 +141,21 @@ export function Gear({ size = 16 }) {
     </svg>
   );
 }
+
+// Calendar — date range, time-based filters
+export function Calendar({ size = 16 }) {
+  return (
+    <svg style={base(size)} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="3" width="12" height="11" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+      <line x1="2" y1="6" x2="14" y2="6" stroke="currentColor" strokeWidth="1.1"/>
+      <line x1="5" y1="1" x2="5" y2="3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      <line x1="11" y1="1" x2="11" y2="3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      <circle cx="4.5" cy="9" r="0.6" fill="currentColor"/>
+      <circle cx="8" cy="9" r="0.6" fill="currentColor"/>
+      <circle cx="11.5" cy="9" r="0.6" fill="currentColor"/>
+      <circle cx="4.5" cy="12" r="0.6" fill="currentColor"/>
+      <circle cx="8" cy="12" r="0.6" fill="currentColor"/>
+    </svg>
+  );
+}
+
