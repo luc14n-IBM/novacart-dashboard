@@ -28,6 +28,7 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
   const [view,       setView]       = useState('table'); // 'table' | 'hbar' | 'vbar'
+  const [topN,       setTopN]       = useState(10);     // how many customers to display
 
   useEffect(() => { loadData(); }, []);
 
@@ -69,11 +70,15 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
   const xTickProps = { fontSize: 12, fill: 'var(--text-muted)' };
   const gridStroke = 'var(--border)';
 
-  // Top 10 customers by total_spent for charts
-  const top10 = [...customers]
+  // Top-N customers by total_spent for charts (respects the topN dropdown)
+  const topN_ALL = topN === 'all';
+  const topSlice = [...customers]
     .sort((a, b) => b.total_spent - a.total_spent)
-    .slice(0, 10)
+    .slice(0, topN_ALL ? undefined : topN)
     .map(c => ({ ...c, shortName: c.name.length > 18 ? c.name.slice(0, 18) + '…' : c.name }));
+
+  // Table rows also respect topN
+  const displayedRows = topN_ALL ? sorted : sorted.slice(0, topN);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -88,8 +93,20 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
           <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Gear size={13} />Apply
           </button>
-          <span style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--text-muted)' }}>
-            {customers.length} customers
+          <label htmlFor="customers-topn" style={{ marginLeft: 'auto' }}>Show</label>
+          <select
+            id="customers-topn"
+            value={topN}
+            onChange={e => setTopN(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+          >
+            <option value={5}>Top 5</option>
+            <option value={10}>Top 10</option>
+            <option value={25}>Top 25</option>
+            <option value={50}>Top 50</option>
+            <option value="all">All</option>
+          </select>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            {topN_ALL ? customers.length : Math.min(topN, customers.length)} of {customers.length} customers
           </span>
         </div>
 
@@ -143,7 +160,7 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((c, i) => (
+                  {displayedRows.map((c, i) => (
                     <tr key={c.customer_id} style={{ background: i % 2 === 0 ? 'transparent' : 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '8px 10px', fontWeight: 500, color: 'var(--text-primary)' }}>{c.name}</td>
                       <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{c.city}</td>
@@ -161,7 +178,7 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
               <ResponsiveContainer width="100%" height={340}>
                 <BarChart
                   layout="vertical"
-                  data={top10}
+                  data={topSlice}
                   margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} horizontal={false} />
@@ -177,7 +194,7 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
             {view === 'vbar' && (
               <ResponsiveContainer width="100%" height={340}>
                 <BarChart
-                  data={top10}
+                  data={topSlice}
                   margin={{ top: 4, right: 16, left: 0, bottom: 60 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
