@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Snowflake CLI
-        run: pip install snowflake-cli-labs --quiet
+        run: pip install snowflake-cli-labs==3.9.0 --quiet
 
       - name: Configure Snowflake connection
         run: |

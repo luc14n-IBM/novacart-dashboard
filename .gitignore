@@ -8,4 +8,5 @@ build/
 *.log
 .DS_Store
 venv/
-.bob/
+.bob
+*.csv
