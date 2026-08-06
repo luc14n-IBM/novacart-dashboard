@@ -62,7 +62,7 @@ cp .env.example .env
 # VITE_BACKEND_URL=/api  (uses Vite dev proxy — no CORS issues)
 
 npm install
-npm run dev
+npm start
 # Opens at http://127.0.0.1:3000
 ```
 
@@ -79,17 +79,18 @@ startapp.bat
 
 ## API Endpoints
 
-| Endpoint | Description |
-|---|---|
-| `GET /health` | Service health check and DB connectivity |
-| `GET /authorize` | SPCS OAuth — returns authenticated user |
-| `GET /franchise/summary` | Total revenue, orders, unique customers, date range |
-| `GET /franchise/orders` | Monthly order volume and revenue (filterable by date) |
-| `GET /franchise/products` | Top 10 products by revenue (filterable by date) |
-| `GET /franchise/customers` | Top 20 customers by revenue (filterable by date) |
-| `GET /franchise/cities` | Revenue by city and state (filterable by date) |
+| Endpoint | Description | Params | Status codes |
+|---|---|---|---|
+| `GET /health` | Service health and DB connectivity | — | 200, 503 |
+| `GET /authorize` | SPCS OAuth — returns authenticated username | — | 200, 401 |
+| `GET /franchise/summary` | Total revenue, orders, unique customers, date range | `start`, `end` (optional) | 200, 404, 422, 503 |
+| `GET /franchise/orders` | Monthly order volume and revenue | `start`, `end` | 200, 422, 503 |
+| `GET /franchise/products` | Top 10 products by revenue | `start`, `end` | 200, 422, 503 |
+| `GET /franchise/customers` | Top 20 customers by total spend | `start`, `end` | 200, 422, 503 |
+| `GET /franchise/cities` | Revenue by city and state | `start`, `end` | 200, 422, 503 |
 
-All date-range endpoints accept `?start=YYYY-MM-DD&end=YYYY-MM-DD` query parameters.
+Date parameters use format `YYYY-MM-DD`. Default range for all franchise endpoints: `2022-01-01` – `2022-12-31`.
+Revenue figures count only `status IN ('delivered', 'shipped')` — cancelled orders are excluded.
 
 ---
 
@@ -127,7 +128,7 @@ bash build-and-push.sh
 
 Then notify your facilitator — they will deploy your services and give you the public URL.
 
-Set `CLIENT_VALIDATION=Prod` in the backend service spec (already defaulted in the Dockerfile) so SPCS OAuth is active on deployment.
+The Dockerfile defaults `CLIENT_VALIDATION=Prod`. The `auto-deploy.yml` workflow overrides this with `CLIENT_VALIDATION=Snowflake` in the service spec, which activates SPCS OAuth on deployment.
 
 ---
 
@@ -140,8 +141,8 @@ Set `CLIENT_VALIDATION=Prod` in the backend service spec (already defaulted in t
 **`snow` command not found** — Run:
 ```bash
 pip3 install snowflake-cli-labs
-export PATH="$HOME/Library/Python/3.9/bin:$PATH"
 ```
+Then open a new terminal (Snowflake CLI adds itself to PATH on first install).
 
 **Docker build fails** — Run with `--no-cache`:
 ```bash

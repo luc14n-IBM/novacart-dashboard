@@ -7,5 +7,6 @@ python-dotenv==1.2.2
 # Pinning it separately would cause a conflict.
 cryptography
 pytest==9.1.1
+pytest-cov==4.1.0
 # httpx is used by FastAPI's TestClient — keep pinned to latest 0.x stable
 httpx==0.28.1

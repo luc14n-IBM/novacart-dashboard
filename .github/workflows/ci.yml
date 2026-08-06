@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["main", "API_Tests"]
+    branches: ["main", "API_Tests", "EdgecaseTesting", "**"]
   pull_request:
     branches: ["main"]
   workflow_call:   # allows auto-deploy.yml to call this as a gate
@@ -29,8 +29,14 @@ jobs:
         run: pip install -r requirements.txt
         working-directory: backend
 
-      - name: Run pytest
-        run: python -m pytest test_api.py -v --tb=short
+      - name: Run pytest (all suites)
+        run: |
+          python -m pytest tests/ test_api.py -v \
+            --tb=short \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=95
         working-directory: backend
         env:
           DATA_BACKEND: sqlite
@@ -57,6 +63,6 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      - name: Run Vitest
-        run: npm run test
+      - name: Run Vitest with coverage
+        run: npm run test -- --coverage --coverage.reporter=text --coverage.reporter=lcov
         working-directory: frontend

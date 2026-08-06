@@ -29,10 +29,11 @@ import main as _main_module  # noqa: E402
 
 
 @pytest.fixture(scope="session")
-def client():
+def api_client():
     """
-    FastAPI TestClient in Dev mode.
-    CORS middleware is active; authorize returns mock user.
+    FastAPI TestClient in Dev mode, backed by the real novacart_gold.db.
+    Used exclusively by test_api.py. Renamed from 'client' to avoid
+    shadowing the function-scoped 'client' fixture in tests/conftest.py.
     """
     with TestClient(app) as c:
         yield c
