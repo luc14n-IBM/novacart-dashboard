@@ -10,7 +10,7 @@ Endpoints:
   GET /authorize                — SPCS OAuth: reads Sf-Context-Current-User header
   GET /franchise/summary        — overview stats (revenue, orders, customers, date range)
   GET /franchise/orders         — monthly order volume and revenue
-  GET /franchise/products       — top 10 products by revenue
+  GET /franchise/products       — all products ranked by revenue
   GET /franchise/customers      — all customers ranked by revenue
   GET /franchise/cities         — revenue by city/state
 
@@ -382,17 +382,18 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
 @app.get(
     "/franchise/products",
     tags=["Franchise"],
-    summary="Top 10 products by revenue",
+    summary="All products ranked by revenue",
     responses={
-        200: {"description": "Up to 10 products ranked by revenue descending."},
+        200: {"description": "All products ranked by revenue descending."},
         422: {"description": "One or more date parameters are not valid ISO 8601 dates."},
         503: {"description": "Database error."},
     },
 )
 def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
     """
-    Returns the top 10 products by revenue for the given date range,
+    Returns all products ranked by revenue for the given date range,
     ordered by revenue descending. Only `delivered` and `shipped` orders count.
+    The frontend controls how many are displayed via the "Show" dropdown.
 
     **Query parameters:**
 
@@ -401,7 +402,7 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
     | `start`   | string | `2022-01-01` | Start date, inclusive (YYYY-MM-DD) |
     | `end`     | string | `2022-12-31` | End date, inclusive (YYYY-MM-DD)   |
 
-    **Response (HTTP 200):** Array of up to 10 items, revenue descending.
+    **Response (HTTP 200):** All products, revenue descending.
     Returns `[]` when no qualifying orders exist in the range.
     ```json
     [
@@ -437,7 +438,6 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
           AND o.status IN ('delivered', 'shipped')
         GROUP BY o.product_id, p.name, p.category
         ORDER BY revenue DESC
-        LIMIT 10
         """, (start, end))
 
         return results or []
