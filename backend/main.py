@@ -459,10 +459,8 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
 )
 def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
     """
-    Returns all customers ranked by total spend for the given date range,
-    ordered by `total_spent` descending. Only current customers
-    (`is_current = 1` in `dim_customer`) are included. The frontend
-    controls how many are displayed via the "Show" dropdown.
+    Returns all customers ranked by revenue for the given date range.
+    The frontend controls how many are displayed via the "Show" dropdown.
 
     **Query parameters:**
 
