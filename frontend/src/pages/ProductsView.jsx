@@ -96,22 +96,22 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
       <div className="page">
 
         <div className="filter-bar">
-          <label>From</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          <label>To</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <label htmlFor="products-from">From</label>
+          <input id="products-from" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <label htmlFor="products-to">To</label>
+          <input id="products-to" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
           <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Gear size={13} />Apply
           </button>
         </div>
 
         {error && (
-          <div style={{ color: '#C62828', padding: 16, background: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
+          <div role="alert" style={{ color: '#C62828', padding: 16, background: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
             Error: {error}
           </div>
         )}
 
-        {loading && <div className="loading">Loading products data…</div>}
+        {loading && <div role="status" className="loading">Loading products data…</div>}
 
         {!loading && !error && (
           <div className="grid-2">

@@ -69,10 +69,10 @@ export default function OrdersView({ startDate, endDate, setStartDate, setEndDat
         {/* ── Filter bar ─────────────────────────────────────────────────── */}
         <div className="filter-bar">
           <FlowNodes size={14} style={{ color: 'var(--text-muted)' }} />
-          <label>From</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          <label>To</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <label htmlFor="orders-from">From</label>
+          <input id="orders-from" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <label htmlFor="orders-to">To</label>
+          <input id="orders-to" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
           <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Gear size={13} />Apply
           </button>
@@ -80,13 +80,13 @@ export default function OrdersView({ startDate, endDate, setStartDate, setEndDat
 
         {/* ── Error state ────────────────────────────────────────────────── */}
         {error && (
-          <div style={{ color: '#C62828', padding: 16, background: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
+          <div role="alert" style={{ color: '#C62828', padding: 16, background: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
             Error: {error}
           </div>
         )}
 
         {/* ── Loading state ──────────────────────────────────────────────── */}
-        {loading && <div className="loading">Loading orders data…</div>}
+        {loading && <div role="status" className="loading">Loading orders data…</div>}
 
         {!loading && !error && (
           <>

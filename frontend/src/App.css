@@ -61,6 +61,12 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Visible focus indicator (WCAG 2.4.7) ── */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
 body {
   font-family:  var(--font);
   font-size:    var(--text-base);       /* 15px body — guideline: 14–16pt    */
