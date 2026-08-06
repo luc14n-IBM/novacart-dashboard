@@ -89,6 +89,7 @@ def get_snowflake_connection():
         warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
         database=os.getenv("SNOWFLAKE_DATABASE"),
         schema=os.getenv("SNOWFLAKE_SCHEMA"),
+        login_timeout=10,  # fail fast locally rather than hanging indefinitely
     )
 
 
@@ -115,7 +116,7 @@ def execute_query(conn, query: str, params: tuple = ()) -> list[dict]:
 
     Args:
         conn: database connection (SQLite or Snowflake)
-        query: SQL query string with ? placeholders (SQLite style)
+        query: SQL query string with ? placeholders (SQLite style; auto-converted to %s for Snowflake)
         params: query parameters
 
     Returns:

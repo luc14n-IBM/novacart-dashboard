@@ -1,10 +1,12 @@
-FROM nginx:alpine
+# nginx:alpine is not from the trusted Red Hat registry — replaced with UBI nginx
+FROM registry.redhat.io/ubi9/nginx-124:latest
 
-RUN apk update && apk add --no-cache bash
-
+# envsubst is included in gettext which is bundled in this image
 COPY nginx.conf.template /nginx.conf.template
 
 EXPOSE 8000
+
+USER 1001
 
 CMD ["/bin/sh", "-c", \
   "envsubst '$FRONTEND_SERVICE $BACKEND_SERVICE' < /nginx.conf.template > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"]
