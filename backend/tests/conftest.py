@@ -6,6 +6,12 @@ Provides:
   - `db_conn`       : the raw in-memory SQLite connection for direct query tests
   - `empty_client`  : a TestClient whose database has tables but zero rows
   - `null_client`   : a TestClient whose database has rows with NULL-able fields set to NULL
+
+All fixtures that build a TestClient patch ``connection.get_connection`` via
+monkeypatch so the patch is scoped to each individual test and cannot bleed
+across fixture boundaries.  This works correctly because ``main.py`` calls
+``_conn_module.get_connection()`` through the module reference, not through a
+local binding created at import time.
 """
 
 import os
@@ -87,8 +93,14 @@ _SEED_ORDERS = [
 
 
 def _build_db(seed_orders=True, null_nullable=False):
-    """Create an in-memory SQLite DB with optional seeding."""
-    conn = sqlite3.connect(":memory:")
+    """Create an in-memory SQLite DB with optional seeding.
+
+    check_same_thread=False is required because FastAPI's TestClient runs
+    request handlers in a worker thread while fixtures create the connection
+    in the test thread.  Test concurrency is sequential (pytest default), so
+    this is safe.
+    """
+    conn = sqlite3.connect(":memory:", check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.executescript(_DDL)
     conn.executemany("INSERT INTO dim_date VALUES (?,?,?,?,?,?)", _SEED_DATE_ROWS)
@@ -114,65 +126,41 @@ def _build_db(seed_orders=True, null_nullable=False):
     return conn
 
 
-def _make_client(conn):
-    """Patch connection.py so the app uses the given in-memory connection."""
-    import connection
-    import main
-
-    connection.DATA_BACKEND = "sqlite"
-
-    def _patched_get_connection():
-        return conn
-
-    original = connection.get_connection
-    connection.get_connection = _patched_get_connection
-    client = TestClient(main.app, raise_server_exceptions=False)
-    connection.get_connection = original  # restore after client is built
-    # Keep the patch active for the lifetime of the client by storing it
-    client._nc_conn = conn
-    client._nc_orig = original
-    client._nc_module = connection
-    return client
-
-
 @pytest.fixture(scope="session")
 def db_conn():
     return _build_db()
 
 
-@pytest.fixture(scope="session")
-def client(db_conn):
+@pytest.fixture
+def client(db_conn, monkeypatch):
+    """
+    Function-scoped TestClient backed by the shared in-memory seed database.
+    monkeypatch ensures the patch is undone after each test — no cross-test bleed.
+    """
     import connection
-    import main
-    connection.DATA_BACKEND = "sqlite"
-    orig = connection.get_connection
-    connection.get_connection = lambda: db_conn
-    c = TestClient(main.app, raise_server_exceptions=False)
-    yield c
-    connection.get_connection = orig
+    monkeypatch.setattr(connection, "get_connection", lambda: db_conn)
+    monkeypatch.setattr(connection, "DATA_BACKEND", "sqlite")
+    from main import app
+    return TestClient(app, raise_server_exceptions=False)
 
 
-@pytest.fixture(scope="session")
-def empty_client():
+@pytest.fixture
+def empty_client(monkeypatch):
+    """Function-scoped TestClient backed by an empty in-memory database."""
     conn = _build_db(seed_orders=False)
     import connection
-    import main
-    connection.DATA_BACKEND = "sqlite"
-    orig = connection.get_connection
-    connection.get_connection = lambda: conn
-    c = TestClient(main.app, raise_server_exceptions=False)
-    yield c
-    connection.get_connection = orig
+    monkeypatch.setattr(connection, "get_connection", lambda: conn)
+    monkeypatch.setattr(connection, "DATA_BACKEND", "sqlite")
+    from main import app
+    return TestClient(app, raise_server_exceptions=False)
 
 
-@pytest.fixture(scope="session")
-def null_client():
+@pytest.fixture
+def null_client(monkeypatch):
+    """Function-scoped TestClient backed by a database with NULL-able fields."""
     conn = _build_db(seed_orders=False, null_nullable=True)
     import connection
-    import main
-    connection.DATA_BACKEND = "sqlite"
-    orig = connection.get_connection
-    connection.get_connection = lambda: conn
-    c = TestClient(main.app, raise_server_exceptions=False)
-    yield c
-    connection.get_connection = orig
+    monkeypatch.setattr(connection, "get_connection", lambda: conn)
+    monkeypatch.setattr(connection, "DATA_BACKEND", "sqlite")
+    from main import app
+    return TestClient(app, raise_server_exceptions=False)

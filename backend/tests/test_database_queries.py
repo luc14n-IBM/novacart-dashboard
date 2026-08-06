@@ -19,18 +19,11 @@ import sqlite3
 import pytest
 
 
-# ── In-process SQLite helper ──────────────────────────────────────────────────
-
-def _execute(conn, sql, params=()):
-    """Thin wrapper that mirrors execute_query behaviour for SQLite."""
-    cur = conn.execute(sql, params)
-    return [dict(row) for row in cur.fetchall()]
-
-
 # ═══════════════════════════════════════════════════════════════════════════════
 #  execute_query abstraction (connection.py)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.unit
 class TestExecuteQuery:
     """Direct unit tests for connection.execute_query with SQLite."""
 
@@ -68,6 +61,7 @@ class TestExecuteQuery:
 #  Status filter — delivered + shipped only
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestStatusFilter:
     """Only 'delivered' and 'shipped' orders should be counted."""
 
@@ -103,6 +97,7 @@ class TestStatusFilter:
 #  BETWEEN inclusive semantics
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestBetweenSemantics:
 
     def test_boundary_start_included(self, db_conn):
@@ -151,6 +146,7 @@ class TestBetweenSemantics:
 #  is_current customer filter
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestIsCurrentFilter:
 
     def test_non_current_customer_excluded(self, db_conn):
@@ -185,6 +181,7 @@ class TestIsCurrentFilter:
 #  Aggregate correctness
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestAggregateCorrectness:
 
     def test_total_revenue_calculation(self, db_conn):
@@ -241,6 +238,7 @@ class TestAggregateCorrectness:
 #  JOIN correctness
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestJoinCorrectness:
 
     def test_date_join_populates_month_name(self, db_conn):
@@ -282,22 +280,25 @@ class TestJoinCorrectness:
             ("O_ORPHAN", "C001", "P001", "2023-06-15", 50.00, "USD", "delivered", 1, 99999999),
         )
         db_conn.commit()
-        rows = execute_query(db_conn, """
-            SELECT o.order_id
-            FROM fact_orders o
-            JOIN dim_date d ON o.date_key = d.date_key
-            WHERE o.order_id = ?
-        """, ("O_ORPHAN",))
-        assert rows == []
-        # Clean up
-        db_conn.execute("DELETE FROM fact_orders WHERE order_id = 'O_ORPHAN'")
-        db_conn.commit()
+        try:
+            rows = execute_query(db_conn, """
+                SELECT o.order_id
+                FROM fact_orders o
+                JOIN dim_date d ON o.date_key = d.date_key
+                WHERE o.order_id = ?
+            """, ("O_ORPHAN",))
+            assert rows == []
+        finally:
+            # Always clean up, even on assertion failure, to protect shared session fixture
+            db_conn.execute("DELETE FROM fact_orders WHERE order_id = 'O_ORPHAN'")
+            db_conn.commit()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  LIMIT clause
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestLimitClauses:
 
     def test_products_limited_to_10(self, db_conn):
@@ -331,6 +332,7 @@ class TestLimitClauses:
 #  Monthly grouping
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestMonthlyGrouping:
 
     def test_month_key_format(self, db_conn):
@@ -379,10 +381,11 @@ class TestMonthlyGrouping:
 #  Empty table queries
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.integration
 class TestEmptyTableQueries:
 
     def test_count_on_empty_table_returns_zero(self):
-        conn = sqlite3.connect(":memory:")
+        conn = sqlite3.connect(":memory:", check_same_thread=False)
         conn.row_factory = sqlite3.Row
         conn.executescript("""
             CREATE TABLE fact_orders (
@@ -405,7 +408,7 @@ class TestEmptyTableQueries:
             os.environ["DATA_BACKEND"] = orig_backend
 
     def test_sum_on_empty_table_returns_null(self):
-        conn = sqlite3.connect(":memory:")
+        conn = sqlite3.connect(":memory:", check_same_thread=False)
         conn.row_factory = sqlite3.Row
         conn.execute("""
             CREATE TABLE fact_orders (

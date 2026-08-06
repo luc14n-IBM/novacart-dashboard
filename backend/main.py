@@ -33,15 +33,31 @@ Notes:
 
 import os
 import time
+from datetime import date as _date
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
-from connection import get_connection, execute_query
+import connection as _conn_module
 
 load_dotenv()
+
+
+def _validate_date(value: str) -> _date:
+    """
+    Parse and validate a YYYY-MM-DD date string.
+    Raises HTTPException(422) for any value that is not a valid ISO date.
+    """
+    try:
+        return _date.fromisoformat(value)
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid date format '{value}'. Expected YYYY-MM-DD.",
+        )
+
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -92,14 +108,14 @@ def health():
     """
     uptime = round(time.time() - START_TIME)
     try:
-        conn    = get_connection()
-        results = execute_query(conn, "SELECT 1 AS ping")
+        conn    = _conn_module.get_connection()
+        results = _conn_module.execute_query(conn, "SELECT 1 AS ping")
         assert len(results) > 0
-    except Exception as e:
+    except Exception:
         return JSONResponse(status_code=503, content={
             "status":   "degraded",
             "uptime_s": uptime,
-            "database": {"status": "error", "message": str(e)},
+            "database": {"status": "error", "message": "Database connection failed"},
         })
     return {
         "status":   "healthy",
@@ -157,10 +173,10 @@ def get_summary(start: str | None = None, end: str | None = None):
 
     """
     try:
-        conn = get_connection()
+        conn = _conn_module.get_connection()
 
         if start and end:
-            results = execute_query(conn, """
+            results = _conn_module.execute_query(conn, """
                 SELECT
                     COUNT(DISTINCT order_id)    AS total_orders,
                     SUM(amount)                 AS total_revenue,
@@ -172,7 +188,7 @@ def get_summary(start: str | None = None, end: str | None = None):
                   AND order_date BETWEEN ? AND ?
             """, (start, end))
         else:
-            results = execute_query(conn, """
+            results = _conn_module.execute_query(conn, """
                 SELECT
                     COUNT(DISTINCT order_id)    AS total_orders,
                     SUM(amount)                 AS total_revenue,
@@ -192,8 +208,10 @@ def get_summary(start: str | None = None, end: str | None = None):
             "unique_customers": row["unique_customers"],
             "date_range": {"start": row["start_date"], "end": row["end_date"]},
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=503, detail="Internal server error")
 
 
 @app.get("/franchise/orders", tags=["Franchise"])
@@ -214,11 +232,13 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
 
     """
     try:
-        conn = get_connection()
+        _validate_date(start)
+        _validate_date(end)
+        conn = _conn_module.get_connection()
 
-        results = execute_query(conn, """
+        results = _conn_module.execute_query(conn, """
         SELECT
-            d.year || '-' || LPAD(CAST(d.month AS VARCHAR), 2, '0') AS month,
+            d.year || '-' || printf('%02d', d.month) AS month,
             d.month_name,
             COUNT(DISTINCT o.order_id)               AS order_count,
             ROUND(SUM(o.amount), 2)                  AS revenue
@@ -230,11 +250,11 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
         ORDER BY d.year, d.month
         """, (start, end))
 
-        if not results:
-            raise HTTPException(status_code=404, detail="No order data found for the given date range")
-        return results
+        return results or []
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=503, detail="Internal server error")
 
 
 @app.get("/franchise/products", tags=["Franchise"])
@@ -250,9 +270,11 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
 
     """
     try:
-        conn = get_connection()
+        _validate_date(start)
+        _validate_date(end)
+        conn = _conn_module.get_connection()
 
-        results = execute_query(conn, """
+        results = _conn_module.execute_query(conn, """
         SELECT
             o.product_id,
             p.name,
@@ -268,11 +290,11 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
         LIMIT 10
         """, (start, end))
 
-        if not results:
-            raise HTTPException(status_code=404, detail="No product data found for the given date range")
-        return results
+        return results or []
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=503, detail="Internal server error")
 
 
 @app.get("/franchise/customers", tags=["Franchise"])
@@ -288,9 +310,11 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
 
     """
     try:
-        conn = get_connection()
+        _validate_date(start)
+        _validate_date(end)
+        conn = _conn_module.get_connection()
 
-        results = execute_query(conn, """
+        results = _conn_module.execute_query(conn, """
         SELECT
             o.customer_id,
             c.name,
@@ -308,11 +332,11 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
         LIMIT 20
         """, (start, end))
 
-        if not results:
-            raise HTTPException(status_code=404, detail="No customer data found for the given date range")
-        return results
+        return results or []
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=503, detail="Internal server error")
 
 
 @app.get("/franchise/cities", tags=["Franchise"])
@@ -328,9 +352,11 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
 
     """
     try:
-        conn = get_connection()
+        _validate_date(start)
+        _validate_date(end)
+        conn = _conn_module.get_connection()
 
-        results = execute_query(conn, """
+        results = _conn_module.execute_query(conn, """
         SELECT
             c.addr_city                 AS city,
             c.addr_state                AS state,
@@ -345,8 +371,8 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
         ORDER BY revenue DESC
         """, (start, end))
 
-        if not results:
-            raise HTTPException(status_code=404, detail="No city data found for the given date range")
-        return results
+        return results or []
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=503, detail="Internal server error")

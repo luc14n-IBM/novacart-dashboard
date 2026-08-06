@@ -317,21 +317,31 @@ npm test
 
 ```ini
 [pytest]
-testpaths = tests
+testpaths = tests .
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = -v --strict-markers --tb=short
+addopts = -v --strict-markers --tb=short --cov=. --cov-report=term-missing --cov-fail-under=95
 markers =
-    integration: marks tests as integration tests
-    unit: marks tests as unit tests
+    integration: marks tests as integration tests (require real database)
+    unit: marks tests as unit tests (fast, no I/O)
     edge_case: marks tests that validate edge cases
     validation: marks tests that validate input handling
 ```
 
-### Frontend: `vitest.config.js`
+Coverage is also enforced via `.coveragerc` (omits `setup_tests.py` and `venv/`).
 
-(To be created — configure Vitest for React component tests)
+### Frontend: `vite.config.js`
+
+Coverage is configured under the `test.coverage` block using `@vitest/coverage-v8`:
+
+```js
+coverage: {
+  provider: 'v8',
+  reporter: ['text', 'lcov'],
+  include: ['src/**/*.{js,jsx}'],
+}
+```
 
 ---
 

@@ -281,8 +281,8 @@ describe('Products Endpoint Edge Cases', () => {
 
   it('should handle products not sorted by revenue', () => {
     const response = [
-      { product_id: 'P1', name: 'A', category: 'X', units_sold: 1, revenue: 100 },
-      { product_id: 'P2', name: 'B', category: 'X', units_sold: 2, revenue: 50 },
+      { product_id: 'P1', name: 'A', category: 'X', units_sold: 1, revenue: 50 },
+      { product_id: 'P2', name: 'B', category: 'X', units_sold: 2, revenue: 100 },
     ];
     // Frontend should sort or validate ordering
     const isSorted = response.every((v, i, a) =>

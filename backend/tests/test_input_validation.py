@@ -30,6 +30,7 @@ DATE_ENDPOINTS = [
 ]
 
 
+@pytest.mark.validation
 class TestValidDateFormats:
     """All four parametrised endpoints must accept YYYY-MM-DD without error."""
 
@@ -69,13 +70,13 @@ class TestValidDateFormats:
 
     @pytest.mark.parametrize("endpoint", DATE_ENDPOINTS)
     def test_non_leap_year_feb_29(self, client, endpoint):
-        """2022-02-29 is a non-existent date; SQLite treats it as an out-of-range
-        string and returns zero rows — the API must still return 200."""
+        """2022-02-29 is a non-existent calendar date; the validation layer now
+        rejects it with 422 rather than silently returning zero rows."""
         r = client.get(endpoint, params={"start": "2022-02-29", "end": "2022-02-29"})
-        assert r.status_code == 200
-        assert r.json() == []
+        assert r.status_code == 422
 
 
+@pytest.mark.validation
 class TestMalformedDates:
     """
     The current backend passes date strings straight to SQLite.
@@ -87,7 +88,7 @@ class TestMalformedDates:
     MALFORMED = [
         "01-01-2022",       # DD-MM-YYYY
         "2022/01/01",       # wrong separator
-        "20220101",         # no separators
+        # "20220101" is valid ISO 8601 basic format — accepted by fromisoformat
         "Jan 1 2022",       # human-readable
         "2022-13-01",       # month 13 — out of range
         "2022-00-01",       # month 0 — out of range
@@ -103,8 +104,8 @@ class TestMalformedDates:
         if bad_date == "":
             pytest.skip("Empty string uses query-param default — tested separately")
         r = client.get(endpoint, params={"start": bad_date, "end": "2022-12-31"})
-        # Must not 500 — either empty list (200) or validation error (422)
-        assert r.status_code in (200, 422)
+        # The API now enforces YYYY-MM-DD; malformed inputs must return 422
+        assert r.status_code == 422
 
     @pytest.mark.parametrize("bad_date", MALFORMED)
     @pytest.mark.parametrize("endpoint", DATE_ENDPOINTS)
@@ -112,14 +113,15 @@ class TestMalformedDates:
         if bad_date == "":
             pytest.skip("Empty string uses query-param default — tested separately")
         r = client.get(endpoint, params={"start": "2022-01-01", "end": bad_date})
-        assert r.status_code in (200, 422)
+        assert r.status_code == 422
 
     @pytest.mark.parametrize("endpoint", DATE_ENDPOINTS)
     def test_both_dates_malformed(self, client, endpoint):
         r = client.get(endpoint, params={"start": "bad", "end": "alsoBad"})
-        assert r.status_code in (200, 422)
+        assert r.status_code == 422
 
 
+@pytest.mark.validation
 class TestInjectionAttempts:
     """SQL injection strings must never crash the backend or return 500."""
 
@@ -136,19 +138,17 @@ class TestInjectionAttempts:
     @pytest.mark.parametrize("endpoint", DATE_ENDPOINTS)
     def test_injection_in_start(self, client, endpoint, payload):
         r = client.get(endpoint, params={"start": payload, "end": "2022-12-31"})
-        # Parameterised queries must prevent any injection
-        assert r.status_code in (200, 422)
-        # The table must still exist (injection did not drop it)
-        if r.status_code == 200:
-            assert isinstance(r.json(), list)
+        # Validation layer must reject injection attempts before they reach the DB
+        assert r.status_code == 422
 
     @pytest.mark.parametrize("payload", INJECTION_STRINGS)
     @pytest.mark.parametrize("endpoint", DATE_ENDPOINTS)
     def test_injection_in_end(self, client, endpoint, payload):
         r = client.get(endpoint, params={"start": "2022-01-01", "end": payload})
-        assert r.status_code in (200, 422)
+        assert r.status_code == 422
 
 
+@pytest.mark.validation
 class TestInvertedDateRange:
     """start > end produces zero rows, not an error."""
 
@@ -159,6 +159,7 @@ class TestInvertedDateRange:
         assert r.json() == []
 
 
+@pytest.mark.validation
 class TestExtraParameters:
     """FastAPI silently ignores unknown query parameters — must not raise 422."""
 
@@ -179,6 +180,7 @@ class TestExtraParameters:
         assert r.status_code in (200, 422)
 
 
+@pytest.mark.validation
 class TestLongStringValues:
     """Very long strings should not crash the server."""
 
@@ -195,6 +197,7 @@ class TestLongStringValues:
         assert r.status_code in (200, 422)
 
 
+@pytest.mark.validation
 class TestHTTPMethods:
     """All data endpoints are GET-only — other methods must return 405."""
 

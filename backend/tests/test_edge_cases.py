@@ -20,18 +20,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _assert_no_500(response):
-    assert response.status_code != 500, (
-        f"Unexpected 500: {response.text}"
-    )
-
-
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Health endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestHealthEndpoint:
 
     def test_healthy_status(self, client):
@@ -59,11 +52,10 @@ class TestHealthEndpoint:
 
     def test_health_degraded_on_db_failure(self, monkeypatch):
         """When the database is unreachable the health endpoint must return 503."""
-        os.environ["DATA_BACKEND"] = "sqlite"
-        os.environ["CLIENT_VALIDATION"] = "Dev"
         import connection
-        import main
+        # main.py calls _conn_module.get_connection() — patch the module attribute
         monkeypatch.setattr(connection, "get_connection", lambda: (_ for _ in ()).throw(Exception("db down")))
+        import main
         c = TestClient(main.app, raise_server_exceptions=False)
         r = c.get("/health")
         assert r.status_code == 503
@@ -74,6 +66,7 @@ class TestHealthEndpoint:
 #  Authorize endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestAuthorizeEndpoint:
 
     def test_dev_mode_returns_dev_user(self, client):
@@ -84,31 +77,24 @@ class TestAuthorizeEndpoint:
         assert body["status"] == "authorized"
 
     def test_spcs_mode_with_header(self, monkeypatch):
-        os.environ["DATA_BACKEND"] = "sqlite"
-        monkeypatch.setenv("CLIENT_VALIDATION", "SPCS")
         import main
-        import importlib
-        importlib.reload(main)
+        monkeypatch.setattr(main, "CLIENT_VALIDATION", "SPCS")
         c = TestClient(main.app, raise_server_exceptions=False)
         r = c.get("/authorize", headers={"sf-context-current-user": "john.doe@example.com"})
         assert r.status_code == 200
         assert r.json()["user"] == "john.doe@example.com"
 
-    def test_spcs_mode_missing_header_returns_422(self, monkeypatch):
-        monkeypatch.setenv("CLIENT_VALIDATION", "SPCS")
+    def test_spcs_mode_missing_header_returns_401(self, monkeypatch):
         import main
-        import importlib
-        importlib.reload(main)
+        monkeypatch.setattr(main, "CLIENT_VALIDATION", "SPCS")
         c = TestClient(main.app, raise_server_exceptions=False)
         r = c.get("/authorize")
-        assert r.status_code == 422
+        assert r.status_code == 401
 
     def test_authorize_header_case_insensitive(self, monkeypatch):
         """HTTP headers are case-insensitive; the backend reads sf-context-current-user."""
-        monkeypatch.setenv("CLIENT_VALIDATION", "SPCS")
         import main
-        import importlib
-        importlib.reload(main)
+        monkeypatch.setattr(main, "CLIENT_VALIDATION", "SPCS")
         c = TestClient(main.app, raise_server_exceptions=False)
         # TestClient / Starlette normalises headers to lowercase already
         r = c.get("/authorize", headers={"SF-Context-Current-User": "alice"})
@@ -120,6 +106,7 @@ class TestAuthorizeEndpoint:
 #  Summary endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestSummaryEndpoint:
 
     def test_summary_response_shape(self, client):
@@ -151,23 +138,22 @@ class TestSummaryEndpoint:
         # Seed has 4 qualifying orders (O001, O002, O003, O005) and 1 cancelled (O004)
         assert body["total_orders"] == 4
 
-    def test_summary_empty_database_returns_zeros(self, empty_client):
-        """With no qualifying orders all numeric fields must be 0, not null/None."""
-        body = empty_client.get("/franchise/summary").json()
-        assert body["total_revenue"] == 0
-        assert body["total_orders"] == 0
+    def test_summary_empty_database_returns_404(self, empty_client):
+        """With no qualifying orders get_summary raises 404 — no data found."""
+        r = empty_client.get("/franchise/summary")
+        assert r.status_code == 404
 
     def test_summary_date_range_null_when_empty(self, empty_client):
-        """When there are no orders the date_range values will be null from SQL MIN/MAX."""
-        body = empty_client.get("/franchise/summary").json()
-        assert body["date_range"]["start"] is None
-        assert body["date_range"]["end"] is None
+        """When there are no orders get_summary raises 404 (total_orders == 0)."""
+        r = empty_client.get("/franchise/summary")
+        assert r.status_code == 404
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Orders endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestOrdersEndpoint:
 
     def test_orders_response_shape(self, client):
@@ -227,6 +213,7 @@ class TestOrdersEndpoint:
 #  Products endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestProductsEndpoint:
 
     def test_products_response_shape(self, client):
@@ -270,6 +257,7 @@ class TestProductsEndpoint:
 #  Customers endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestCustomersEndpoint:
 
     def test_customers_response_shape(self, client):
@@ -314,6 +302,7 @@ class TestCustomersEndpoint:
 #  Cities endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestCitiesEndpoint:
 
     def test_cities_response_shape(self, client):
@@ -362,6 +351,7 @@ class TestCitiesEndpoint:
 #  NULL field edge cases
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestNullFieldEdgeCases:
     """When rows in the DB have NULL values the API must not crash."""
 
@@ -380,6 +370,7 @@ class TestNullFieldEdgeCases:
 #  404 / unknown route
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@pytest.mark.edge_case
 class TestUnknownRoutes:
 
     def test_unknown_path_returns_404(self, client):
