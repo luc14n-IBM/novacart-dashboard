@@ -33,6 +33,7 @@ Notes:
 
 import os
 import time
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -44,6 +45,22 @@ load_dotenv()
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
+PORT              = int(os.getenv("PORT", 8000))
+CLIENT_VALIDATION = os.getenv("CLIENT_VALIDATION", "Dev")
+START_TIME        = time.time()
+
+
+# Replaces the deprecated @app.on_event("startup") pattern
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("\nStarting NovaCart Dashboard API")
+    print(f"Port:            {PORT}")
+    print(f"Data backend:    {os.getenv('DATA_BACKEND', 'sqlite')}")
+    print(f"Validation mode: {CLIENT_VALIDATION}")
+    print(f"Docs:            http://localhost:{PORT}/docs\n")
+    yield  # application runs here
+
+
 app = FastAPI(
     title="NovaCart Account Dashboard API",
     description=(
@@ -51,11 +68,8 @@ app = FastAPI(
         "Built on top of the Gold data layer produced by the Data Engineering team."
     ),
     version="1.0.0",
+    lifespan=lifespan,
 )
-
-PORT              = int(os.getenv("PORT", 8000))
-CLIENT_VALIDATION = os.getenv("CLIENT_VALIDATION", "Dev")
-START_TIME        = time.time()
 
 # CORS — only needed for local development
 # In SPCS, the NGINX router handles routing so CORS is not required
@@ -66,17 +80,6 @@ if CLIENT_VALIDATION == "Dev":
         allow_methods=["GET"],
         allow_headers=["*"],
     )
-
-
-# ── Startup log ───────────────────────────────────────────────────────────────
-
-@app.on_event("startup")
-async def startup():
-    print("\nStarting NovaCart Dashboard API")
-    print(f"Port:            {PORT}")
-    print(f"Data backend:    {os.getenv('DATA_BACKEND', 'sqlite')}")
-    print(f"Validation mode: {CLIENT_VALIDATION}")
-    print(f"Docs:            http://localhost:{PORT}/docs\n")
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
@@ -124,7 +127,7 @@ def authorize(request: Request):
 
     username = request.headers.get("sf-context-current-user")
     if not username:
-        raise HTTPException(status_code=422, detail="Missing Sf-Context-Current-User header")
+        raise HTTPException(status_code=401, detail="Missing Sf-Context-Current-User header")
 
     return {"user": username, "status": "authorized"}
 
@@ -132,13 +135,17 @@ def authorize(request: Request):
 # ── Franchise endpoints ───────────────────────────────────────────────────────
 
 @app.get("/franchise/summary", tags=["Franchise"])
-def get_summary():
+def get_summary(start: str | None = None, end: str | None = None):
     """
-    Returns an overview of all orders in the database:
+    Returns an overview of orders in the database:
     - Total revenue (delivered + shipped orders only)
     - Total orders
     - Number of unique customers
     - Date range of available data
+
+    Query parameters (optional):
+      start: start date (YYYY-MM-DD)
+      end:   end date (YYYY-MM-DD)
 
     Expected response:
     {
@@ -149,26 +156,44 @@ def get_summary():
     }
 
     """
-    conn = get_connection()
+    try:
+        conn = get_connection()
 
-    results = execute_query(conn, """
-        SELECT
-            COUNT(DISTINCT order_id)    AS total_orders,
-            SUM(amount)                 AS total_revenue,
-            COUNT(DISTINCT customer_id) AS unique_customers,
-            MIN(order_date)             AS start_date,
-            MAX(order_date)             AS end_date
-        FROM fact_orders
-        WHERE status IN ('delivered', 'shipped')
-    """)
+        if start and end:
+            results = execute_query(conn, """
+                SELECT
+                    COUNT(DISTINCT order_id)    AS total_orders,
+                    SUM(amount)                 AS total_revenue,
+                    COUNT(DISTINCT customer_id) AS unique_customers,
+                    MIN(order_date)             AS start_date,
+                    MAX(order_date)             AS end_date
+                FROM fact_orders
+                WHERE status IN ('delivered', 'shipped')
+                  AND order_date BETWEEN ? AND ?
+            """, (start, end))
+        else:
+            results = execute_query(conn, """
+                SELECT
+                    COUNT(DISTINCT order_id)    AS total_orders,
+                    SUM(amount)                 AS total_revenue,
+                    COUNT(DISTINCT customer_id) AS unique_customers,
+                    MIN(order_date)             AS start_date,
+                    MAX(order_date)             AS end_date
+                FROM fact_orders
+                WHERE status IN ('delivered', 'shipped')
+            """)
 
-    row = results[0]
-    return {
-        "total_revenue":    round(row["total_revenue"] or 0, 2),
-        "total_orders":     row["total_orders"],
-        "unique_customers": row["unique_customers"],
-        "date_range": {"start": row["start_date"], "end": row["end_date"]},
-    }
+        row = results[0]
+        if row["total_orders"] is None or row["total_orders"] == 0:
+            raise HTTPException(status_code=404, detail="No data found for the given date range")
+        return {
+            "total_revenue":    round(row["total_revenue"] or 0, 2),
+            "total_orders":     row["total_orders"],
+            "unique_customers": row["unique_customers"],
+            "date_range": {"start": row["start_date"], "end": row["end_date"]},
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
 
 
 @app.get("/franchise/orders", tags=["Franchise"])
@@ -188,11 +213,12 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
     ]
 
     """
-    conn = get_connection()
+    try:
+        conn = get_connection()
 
-    results = execute_query(conn, """
+        results = execute_query(conn, """
         SELECT
-            d.year || '-' || printf('%02d', d.month) AS month,
+            d.year || '-' || LPAD(CAST(d.month AS VARCHAR), 2, '0') AS month,
             d.month_name,
             COUNT(DISTINCT o.order_id)               AS order_count,
             ROUND(SUM(o.amount), 2)                  AS revenue
@@ -202,9 +228,13 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
           AND o.status IN ('delivered', 'shipped')
         GROUP BY d.year, d.month, d.month_name
         ORDER BY d.year, d.month
-    """, (start, end))
+        """, (start, end))
 
-    return results
+        if not results:
+            raise HTTPException(status_code=404, detail="No order data found for the given date range")
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
 
 
 @app.get("/franchise/products", tags=["Franchise"])
@@ -219,9 +249,10 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
     ]
 
     """
-    conn = get_connection()
+    try:
+        conn = get_connection()
 
-    results = execute_query(conn, """
+        results = execute_query(conn, """
         SELECT
             o.product_id,
             p.name,
@@ -235,9 +266,13 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
         GROUP BY o.product_id, p.name, p.category
         ORDER BY revenue DESC
         LIMIT 10
-    """, (start, end))
+        """, (start, end))
 
-    return results
+        if not results:
+            raise HTTPException(status_code=404, detail="No product data found for the given date range")
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
 
 
 @app.get("/franchise/customers", tags=["Franchise"])
@@ -252,9 +287,10 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
     ]
 
     """
-    conn = get_connection()
+    try:
+        conn = get_connection()
 
-    results = execute_query(conn, """
+        results = execute_query(conn, """
         SELECT
             o.customer_id,
             c.name,
@@ -270,9 +306,13 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
         GROUP BY o.customer_id, c.name, c.addr_city, c.addr_state
         ORDER BY total_spent DESC
         LIMIT 20
-    """, (start, end))
+        """, (start, end))
 
-    return results
+        if not results:
+            raise HTTPException(status_code=404, detail="No customer data found for the given date range")
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
 
 
 @app.get("/franchise/cities", tags=["Franchise"])
@@ -287,9 +327,10 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
     ]
 
     """
-    conn = get_connection()
+    try:
+        conn = get_connection()
 
-    results = execute_query(conn, """
+        results = execute_query(conn, """
         SELECT
             c.addr_city                 AS city,
             c.addr_state                AS state,
@@ -302,6 +343,10 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
           AND o.status IN ('delivered', 'shipped')
         GROUP BY c.addr_city, c.addr_state
         ORDER BY revenue DESC
-    """, (start, end))
+        """, (start, end))
 
-    return results
+        if not results:
+            raise HTTPException(status_code=404, detail="No city data found for the given date range")
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
