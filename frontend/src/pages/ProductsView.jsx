@@ -52,6 +52,7 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState(null);
   const [productsView, setProductsView] = useState('hbar'); // 'hbar' | 'vbar' | 'donut'
+  const [topN,         setTopN]         = useState(10);     // how many products to display
 
   useEffect(() => { loadData(); }, []);
 
@@ -71,12 +72,15 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
   const xTickProps = { fontSize: 12, fill: 'var(--text-muted)' };
   const gridStroke = 'var(--border)';
 
-  const chartData = products.map(p => ({
+  const topN_ALL = topN === 'all';
+  const displayedProducts = topN_ALL ? products : products.slice(0, topN);
+
+  const chartData = displayedProducts.map(p => ({
     ...p,
     shortName: p.name.length > 22 ? p.name.slice(0, 22) + '…' : p.name,
   }));
 
-  // Roll products up into category totals for the donut
+  // Roll ALL products up into category totals for the donut (not limited by topN)
   const categoryData = Object.values(
     products.reduce((acc, p) => {
       const key = p.category || 'Other';
@@ -88,7 +92,7 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
 
   const chartTitle = productsView === 'donut'
     ? 'Revenue by Category'
-    : 'Top 10 Products by Revenue';
+    : `Top ${topN_ALL ? products.length : Math.min(topN, products.length)} Products by Revenue`;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -103,6 +107,21 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
           <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Gear size={13} />Apply
           </button>
+          <label htmlFor="products-topn" style={{ marginLeft: 'auto' }}>Show</label>
+          <select
+            id="products-topn"
+            value={topN}
+            onChange={e => setTopN(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+          >
+            <option value={5}>Top 5</option>
+            <option value={10}>Top 10</option>
+            <option value={25}>Top 25</option>
+            <option value={50}>Top 50</option>
+            <option value="all">All</option>
+          </select>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            {topN_ALL ? products.length : Math.min(topN, products.length)} of {products.length} products
+          </span>
         </div>
 
         {error && (
@@ -208,7 +227,7 @@ export default function ProductsView({ startDate, endDate, setStartDate, setEndD
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p, i) => (
+                  {displayedProducts.map((p, i) => (
                     <tr key={p.product_id} style={{ background: i % 2 === 0 ? 'transparent' : 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '8px 10px', color: 'var(--text-primary)', fontWeight: 500 }}>{p.name}</td>
                       <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{p.category}</td>
