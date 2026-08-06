@@ -81,10 +81,10 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
       <div className="page">
 
         <div className="filter-bar">
-          <label>From</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          <label>To</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <label htmlFor="customers-from">From</label>
+          <input id="customers-from" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <label htmlFor="customers-to">To</label>
+          <input id="customers-to" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
           <button className="btn-apply" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Gear size={13} />Apply
           </button>
@@ -94,12 +94,12 @@ export default function CustomersView({ startDate, endDate, setStartDate, setEnd
         </div>
 
         {error && (
-          <div style={{ color: '#C62828', padding: 16, background: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
+          <div role="alert" style={{ color: '#C62828', padding: 16, background: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
             Error: {error}
           </div>
         )}
 
-        {loading && <div className="loading">Loading customers…</div>}
+        {loading && <div role="status" className="loading">Loading customers…</div>}
 
         {!loading && !error && (
           <div className="card">
