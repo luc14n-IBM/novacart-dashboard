@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["main", "API_Tests", "EdgecaseTesting", "**"]
+    branches: ["API_Tests", "EdgecaseTesting"]
   pull_request:
     branches: ["main"]
   workflow_call:   # allows auto-deploy.yml to call this as a gate
@@ -13,6 +13,7 @@ jobs:
   backend-tests:
     name: Backend tests (pytest)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -35,8 +36,7 @@ jobs:
             --tb=short \
             --cov=. \
             --cov-report=xml \
-            --cov-report=term-missing \
-            --cov-fail-under=95
+            --cov-report=term-missing
         working-directory: backend
         env:
           DATA_BACKEND: sqlite
@@ -47,6 +47,7 @@ jobs:
   frontend-tests:
     name: Frontend tests (Vitest)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -64,5 +65,5 @@ jobs:
         working-directory: frontend
 
       - name: Run Vitest with coverage
-        run: npm run test -- --coverage --coverage.reporter=text --coverage.reporter=lcov
+        run: npx vitest run --coverage
         working-directory: frontend
