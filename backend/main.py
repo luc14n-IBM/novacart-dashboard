@@ -184,6 +184,8 @@ def get_summary(start: str | None = None, end: str | None = None):
             """)
 
         row = results[0]
+        if row["total_orders"] is None or row["total_orders"] == 0:
+            raise HTTPException(status_code=404, detail="No data found for the given date range")
         return {
             "total_revenue":    round(row["total_revenue"] or 0, 2),
             "total_orders":     row["total_orders"],
@@ -216,7 +218,7 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
 
         results = execute_query(conn, """
         SELECT
-            d.year || '-' || printf('%02d', d.month) AS month,
+            d.year || '-' || LPAD(CAST(d.month AS VARCHAR), 2, '0') AS month,
             d.month_name,
             COUNT(DISTINCT o.order_id)               AS order_count,
             ROUND(SUM(o.amount), 2)                  AS revenue
@@ -228,6 +230,8 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
         ORDER BY d.year, d.month
         """, (start, end))
 
+        if not results:
+            raise HTTPException(status_code=404, detail="No order data found for the given date range")
         return results
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
@@ -264,6 +268,8 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
         LIMIT 10
         """, (start, end))
 
+        if not results:
+            raise HTTPException(status_code=404, detail="No product data found for the given date range")
         return results
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
@@ -302,6 +308,8 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
         LIMIT 20
         """, (start, end))
 
+        if not results:
+            raise HTTPException(status_code=404, detail="No customer data found for the given date range")
         return results
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
@@ -337,6 +345,8 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
         ORDER BY revenue DESC
         """, (start, end))
 
+        if not results:
+            raise HTTPException(status_code=404, detail="No city data found for the given date range")
         return results
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
