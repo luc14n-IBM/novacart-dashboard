@@ -89,6 +89,7 @@ def get_snowflake_connection():
         warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
         database=os.getenv("SNOWFLAKE_DATABASE"),
         schema=os.getenv("SNOWFLAKE_SCHEMA"),
+        login_timeout=10,  # fail fast locally rather than hanging indefinitely
     )
 
 

@@ -1,0 +1,841 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NovaCart — Test Reference</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 32px 16px 56px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: #57606a; font-size: 13px; margin-bottom: 28px; }
+
+  /* section headers */
+  .section-header {
+    margin: 32px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header h2 { font-size: 15px; font-weight: 700; }
+
+  /* group sub-headers */
+  .group-header {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px 4px 0 0;
+    padding: 7px 12px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #57606a;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .group-header .endpoint {
+    font-family: "Consolas", monospace;
+    font-size: 12px;
+    background: #1f2328;
+    color: #e6edf3;
+    padding: 1px 7px;
+    border-radius: 3px;
+  }
+
+  /* test table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  table + .group-header { margin-top: 16px; }
+  th {
+    background: #f7f8fa;
+    text-align: left;
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #57606a;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  td {
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+  td:first-child { white-space: nowrap; }
+
+  /* code */
+  code {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 11px;
+    background: #f7f8fa;
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #7c5cd8;
+  }
+
+  /* criticality badges */
+  .crit {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .crit-high    { background: #fee2e2; color: #991b1b; }
+  .crit-med     { background: #fef3c7; color: #92400e; }
+  .crit-low     { background: #dcfce7; color: #166534; }
+
+  /* suite badges */
+  .suite {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .suite-py  { background: #dbeafe; color: #1d4ed8; }
+  .suite-js  { background: #fef3c7; color: #92400e; }
+
+  /* legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 24px;
+    font-size: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+
+  /* infra box */
+  .infra {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    font-size: 12px;
+  }
+  .infra h3 { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .infra ul { list-style: none; padding: 0; }
+  .infra li { padding: 2px 0 2px 14px; position: relative; }
+  .infra li::before { content: "→"; position: absolute; left: 0; color: #3b82d4; }
+
+  /* count row */
+  .counts {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .count-box {
+    flex: 1;
+    min-width: 140px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .count-num { font-size: 26px; font-weight: 700; color: #3b82d4; line-height: 1.2; }
+  .count-lbl { font-size: 11px; color: #57606a; }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 12px;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>NovaCart Dashboard — Test Reference</h1>
+  <p class="subtitle">Complete catalogue of all automated tests: purpose, mechanism, and criticality.</p>
+
+  
+  <div class="counts">
+    <div class="count-box"><div class="count-num">64</div><div class="count-lbl">Total tests</div></div>
+    <div class="count-box"><div class="count-num">44</div><div class="count-lbl">Backend (pytest)</div></div>
+    <div class="count-box"><div class="count-num">20</div><div class="count-lbl">Frontend (Vitest)</div></div>
+    <div class="count-box"><div class="count-num">3</div><div class="count-lbl">Test files</div></div>
+  </div>
+
+  
+  <div class="legend">
+    <div class="legend-item"><span class="crit crit-high">HIGH</span> Failure = broken feature or security gap</div>
+    <div class="legend-item"><span class="crit crit-med">MEDIUM</span> Failure = degraded UX or bad data format</div>
+    <div class="legend-item"><span class="crit crit-low">LOW</span> Failure = cosmetic or minor behavioural gap</div>
+    <div class="legend-item"><span class="suite suite-py">pytest</span> Python / FastAPI</div>
+    <div class="legend-item"><span class="suite suite-js">Vitest</span> React / JavaScript</div>
+  </div>
+
+  
+  <div class="infra">
+    <h3>Test infrastructure</h3>
+    <ul>
+      <li><strong>Backend:</strong> FastAPI <code>TestClient</code> (wraps httpx) — in-process, no live server. Wired to <code>data/novacart_gold.db</code> (real SQLite data, 30 000 orders). Two fixtures: <code>client</code> (Dev mode) and <code>spcs_client</code> (SPCS mode, <code>CLIENT_VALIDATION</code> patched on the live module).</li>
+      <li><strong>Frontend API client:</strong> Global <code>fetch</code> stubbed with <code>vi.stubGlobal</code> — no network calls. Stub is restored after every test.</li>
+      <li><strong>Frontend component:</strong> <code>getHealth</code> mocked at module level via <code>vi.mock</code>. Rendered into a jsdom environment with React Testing Library.</li>
+    </ul>
+  </div>
+
+
+  
+  
+  
+
+  <div class="section-header">
+    <h2>Backend — <code>backend/test_api.py</code></h2>
+    <span class="suite suite-py">pytest</span>
+  </div>
+
+  
+  <div class="group-header"><span class="endpoint">GET /health</span> TestHealth · 6 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><code>test_returns_200</code></td>
+        <td>The health endpoint is polled by the frontend status indicator and the <code>startapp</code> launcher. If it returns anything other than 200 the launcher will never start the frontend.</td>
+        <td>HTTP status code is 200</td>
+        <td>GET /health → assert <code>status_code == 200</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><code>test_response_shape</code></td>
+        <td>The frontend reads <code>status</code>, <code>uptime_s</code>, and <code>database</code> keys. Missing keys cause silent JS errors.</td>
+        <td>Response JSON contains <code>status</code>, <code>uptime_s</code>, <code>database</code></td>
+        <td>Assert all three keys present in parsed JSON</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><code>test_database_connected</code></td>
+        <td>Confirms the DB connection is live. A degraded response here means every data endpoint will also fail.</td>
+        <td><code>database.status == "connected"</code></td>
+        <td>Read <code>data["database"]["status"]</code> from response</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><code>test_status_is_healthy</code></td>
+        <td>Distinguishes "200 but degraded" from truly healthy. The frontend maps this field to the indicator colour.</td>
+        <td><code>status == "healthy"</code></td>
+        <td>Assert string equality on <code>data["status"]</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><code>test_uptime_is_nonnegative</code></td>
+        <td>Guards against clock issues or a negative value being serialised to the client.</td>
+        <td><code>uptime_s &gt;= 0</code></td>
+        <td>Numeric comparison on <code>data["uptime_s"]</code></td>
+        <td><span class="crit crit-low">LOW</span></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td><code>test_backend_field_present</code></td>
+        <td>The frontend displays which data backend is active (sqlite vs snowflake). Missing field hides that label.</td>
+        <td><code>backend</code> key present in response</td>
+        <td>Assert key exists in parsed JSON</td>
+        <td><span class="crit crit-low">LOW</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header"><span class="endpoint">GET /authorize</span> TestAuthorize · 4 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>7</td>
+        <td><code>test_dev_mode_returns_200</code></td>
+        <td>Login flow depends on this endpoint. A non-200 sends the user back to the login screen.</td>
+        <td>Status 200 in Dev mode</td>
+        <td>GET /authorize with <code>client</code> (Dev fixture)</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td><code>test_dev_mode_user</code></td>
+        <td>The frontend stores the returned <code>user</code> field and uses it throughout the session. Wrong value breaks the user display.</td>
+        <td><code>user == "dev_user"</code>, <code>status == "authorized"</code></td>
+        <td>Assert exact field values in parsed JSON</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td><code>test_spcs_missing_header_returns_422</code></td>
+        <td>In SPCS mode an unauthenticated request must be rejected. If this returns 200 any user could access the dashboard without a Snowflake identity.</td>
+        <td>Status 422 when <code>Sf-Context-Current-User</code> header is absent</td>
+        <td>GET /authorize with <code>spcs_client</code> fixture, no header</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td><code>test_spcs_with_header_returns_user</code></td>
+        <td>Validates the SPCS identity pass-through works — the header value must be echoed back as the user identity.</td>
+        <td>Status 200, <code>user</code> equals the injected header value</td>
+        <td>GET /authorize with <code>spcs_client</code> + <code>sf-context-current-user: alice@example.com</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header"><span class="endpoint">GET /franchise/summary</span> TestSummary · 7 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>11</td>
+        <td><code>test_returns_200</code></td>
+        <td>This is the first data call made on the dashboard home screen. Failure means the page loads blank.</td>
+        <td>HTTP 200</td>
+        <td>GET /franchise/summary → assert status code</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td><code>test_response_shape</code></td>
+        <td>All four stat cards on the dashboard read named keys. A missing key renders as <code>undefined</code> in the UI.</td>
+        <td><code>total_revenue</code>, <code>total_orders</code>, <code>unique_customers</code>, <code>date_range</code> present</td>
+        <td>Assert all four keys exist in parsed JSON</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>13</td>
+        <td><code>test_date_range_has_start_and_end</code></td>
+        <td>The date range is used to pre-fill the date picker. Missing <code>start</code>/<code>end</code> breaks that initialisation.</td>
+        <td><code>date_range.start</code> and <code>date_range.end</code> present</td>
+        <td>Assert sub-keys on the <code>date_range</code> object</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>14</td>
+        <td><code>test_total_revenue_is_float</code></td>
+        <td>Revenue is rendered with currency formatting. A string or null would break the formatter.</td>
+        <td><code>total_revenue</code> is numeric (int or float)</td>
+        <td><code>isinstance</code> check</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>15</td>
+        <td><code>test_total_orders_is_int</code></td>
+        <td>Order count is displayed as a whole number. A float would look wrong (e.g. "8432.0").</td>
+        <td><code>total_orders</code> is an integer</td>
+        <td><code>isinstance(data["total_orders"], int)</code></td>
+        <td><span class="crit crit-low">LOW</span></td>
+      </tr>
+      <tr>
+        <td>16</td>
+        <td><code>test_nonnegative_values</code></td>
+        <td>Negative revenue, orders, or customers would indicate a SQL logic error (e.g. wrong status filter).</td>
+        <td>All three numeric fields ≥ 0</td>
+        <td>Three numeric comparisons</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>17</td>
+        <td><code>test_revenue_rounded_to_two_decimals</code></td>
+        <td>Floating-point SQL aggregates can produce values like <code>128450.0000000003</code>. The API is supposed to round to 2 d.p. before returning.</td>
+        <td><code>round(revenue, 2) == revenue</code></td>
+        <td>Round-trip equality check</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header"><span class="endpoint">GET /franchise/orders</span> TestOrders · 7 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>18</td>
+        <td><code>test_returns_200</code></td>
+        <td>Powers the monthly revenue chart. A failure means the chart is blank.</td>
+        <td>HTTP 200</td>
+        <td>GET /franchise/orders → assert status code</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>19</td>
+        <td><code>test_returns_list</code></td>
+        <td>The frontend maps over the response. If the response is an object (not array), <code>.map()</code> throws a runtime error.</td>
+        <td>Response is a JSON array</td>
+        <td><code>isinstance(data, list)</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>20</td>
+        <td><code>test_item_shape</code></td>
+        <td>The chart reads <code>month</code>, <code>month_name</code>, <code>order_count</code>, and <code>revenue</code> by name. Missing keys produce <code>undefined</code> data points.</td>
+        <td>First item has all four required keys</td>
+        <td>Assert keys on <code>data[0]</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>21</td>
+        <td><code>test_date_filter_narrows_results</code></td>
+        <td>Confirms the <code>start</code>/<code>end</code> query parameters actually filter results. If the WHERE clause is broken, every date range returns full-year data.</td>
+        <td>3-month window returns ≤ rows than 12-month window</td>
+        <td>Two requests, compare <code>len()</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>22</td>
+        <td><code>test_empty_date_range_returns_empty_list</code></td>
+        <td>A date range with no data should return <code>[]</code>, not an error. The chart must handle empty gracefully.</td>
+        <td>Year-2000 range returns <code>[]</code></td>
+        <td>Assert <code>data == []</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>23</td>
+        <td><code>test_revenue_values_are_numeric</code></td>
+        <td>Recharts will silently draw a zero bar if revenue is a string. Catches type coercion bugs in the SQL layer.</td>
+        <td>Every item's <code>revenue</code> is int or float</td>
+        <td>Loop all items, <code>isinstance</code> check</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>24</td>
+        <td><code>test_months_are_in_order</code></td>
+        <td>The chart assumes ascending chronological order. An unsorted result renders a scrambled time-series.</td>
+        <td>Month strings are sorted ascending</td>
+        <td>Compare list to <code>sorted(list)</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header"><span class="endpoint">GET /franchise/products</span> TestProducts · 7 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>25</td>
+        <td><code>test_returns_200</code></td>
+        <td>Powers the top-products bar chart and table. Failure = blank Products view.</td>
+        <td>HTTP 200</td>
+        <td>GET /franchise/products → assert status code</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>26</td>
+        <td><code>test_returns_list</code></td>
+        <td>Frontend iterates the response. Non-array response causes a runtime error.</td>
+        <td>Response is a JSON array</td>
+        <td><code>isinstance(data, list)</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>27</td>
+        <td><code>test_max_ten_results</code></td>
+        <td>The endpoint is documented as "top 10". More than 10 results means the LIMIT clause is missing or broken.</td>
+        <td><code>len(data) &lt;= 10</code></td>
+        <td>Length comparison</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>28</td>
+        <td><code>test_item_shape</code></td>
+        <td>Chart and table read <code>product_id</code>, <code>name</code>, <code>category</code>, <code>units_sold</code>, <code>revenue</code> by name.</td>
+        <td>First item has all five required keys</td>
+        <td>Assert keys on <code>data[0]</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>29</td>
+        <td><code>test_sorted_by_revenue_descending</code></td>
+        <td>The "top products" ranking only makes sense if sorted by revenue. Wrong order means product #1 may not actually be the top earner.</td>
+        <td>Revenue list is non-increasing</td>
+        <td>Compare to <code>sorted(..., reverse=True)</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>30</td>
+        <td><code>test_date_filter_returns_at_most_ten</code></td>
+        <td>Confirms LIMIT is applied after the date filter, not before.</td>
+        <td>Single-month result has ≤ 10 items</td>
+        <td>Length comparison on filtered request</td>
+        <td><span class="crit crit-low">LOW</span></td>
+      </tr>
+      <tr>
+        <td>31</td>
+        <td><code>test_empty_date_range_returns_empty_list</code></td>
+        <td>Out-of-range date must return empty gracefully, not an error or partial data.</td>
+        <td>Year-2000 range returns <code>[]</code></td>
+        <td>Assert <code>data == []</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header"><span class="endpoint">GET /franchise/customers</span> TestCustomers · 7 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>32</td>
+        <td><code>test_returns_200</code></td>
+        <td>Powers the sortable customers table. Failure = blank Customers view.</td>
+        <td>HTTP 200</td>
+        <td>GET /franchise/customers → assert status code</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>33</td>
+        <td><code>test_returns_list</code></td>
+        <td>Frontend maps the response into table rows. Non-array throws at runtime.</td>
+        <td>Response is a JSON array</td>
+        <td><code>isinstance(data, list)</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>34</td>
+        <td><code>test_max_twenty_results</code></td>
+        <td>Endpoint is documented as "top 20". More results = broken LIMIT.</td>
+        <td><code>len(data) &lt;= 20</code></td>
+        <td>Length comparison</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>35</td>
+        <td><code>test_item_shape</code></td>
+        <td>Table columns map directly to <code>customer_id</code>, <code>name</code>, <code>city</code>, <code>state</code>, <code>total_orders</code>, <code>total_spent</code>.</td>
+        <td>First item has all six required keys</td>
+        <td>Assert keys on <code>data[0]</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>36</td>
+        <td><code>test_sorted_by_total_spent_descending</code></td>
+        <td>The "top customers" list is only meaningful if the highest spender is first. Wrong sort order misrepresents account value.</td>
+        <td><code>total_spent</code> list is non-increasing</td>
+        <td>Compare to <code>sorted(..., reverse=True)</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>37</td>
+        <td><code>test_date_filter_narrows_results</code></td>
+        <td>Confirms date parameters actually filter. A single-month window must return fewer (or equal) customers than a full year.</td>
+        <td>1-month result ≤ 12-month result in length</td>
+        <td>Two requests, compare <code>len()</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>38</td>
+        <td><code>test_empty_date_range_returns_empty_list</code></td>
+        <td>Out-of-range dates must return empty, not an error.</td>
+        <td>Year-2000 range returns <code>[]</code></td>
+        <td>Assert <code>data == []</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header"><span class="endpoint">GET /franchise/cities</span> TestCities · 6 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>39</td>
+        <td><code>test_returns_200</code></td>
+        <td>Powers the geographic breakdown chart. Failure = blank cities chart.</td>
+        <td>HTTP 200</td>
+        <td>GET /franchise/cities → assert status code</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>40</td>
+        <td><code>test_returns_list</code></td>
+        <td>Frontend iterates the response. Non-array throws at runtime.</td>
+        <td>Response is a JSON array</td>
+        <td><code>isinstance(data, list)</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>41</td>
+        <td><code>test_item_shape</code></td>
+        <td>Chart reads <code>city</code>, <code>state</code>, <code>order_count</code>, <code>revenue</code> by name. Missing keys produce blank labels or zero bars.</td>
+        <td>First item has all four required keys</td>
+        <td>Assert keys on <code>data[0]</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>42</td>
+        <td><code>test_sorted_by_revenue_descending</code></td>
+        <td>The chart displays cities ranked by revenue. Wrong order misrepresents geographic performance.</td>
+        <td>Revenue list is non-increasing</td>
+        <td>Compare to <code>sorted(..., reverse=True)</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>43</td>
+        <td><code>test_date_filter_narrows_results</code></td>
+        <td>Date filter must reduce the city set. Confirms the WHERE clause applies correctly to the cities query.</td>
+        <td>1-month result ≤ 12-month result in length</td>
+        <td>Two requests, compare <code>len()</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>44</td>
+        <td><code>test_empty_date_range_returns_empty_list</code></td>
+        <td>Out-of-range dates must return empty gracefully.</td>
+        <td>Year-2000 range returns <code>[]</code></td>
+        <td>Assert <code>data == []</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  
+  
+  
+
+  <div class="section-header">
+    <h2>Frontend — <code>src/utils/api.test.js</code></h2>
+    <span class="suite suite-js">Vitest</span>
+  </div>
+
+  
+  <div class="group-header">URL routing · 7 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>45</td>
+        <td><code>calls the correct URL for authorize</code></td>
+        <td>If the URL is wrong, the auth call silently hits the wrong endpoint and the user can never log in.</td>
+        <td><code>fetch</code> is called with a URL containing <code>/authorize</code></td>
+        <td>Stub fetch, call <code>authorize()</code>, inspect <code>fetch.mock.calls[0][0]</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>46</td>
+        <td><code>calls the correct URL for health</code></td>
+        <td>The service status indicator and startup poller both rely on this URL being correct.</td>
+        <td>URL contains <code>/health</code></td>
+        <td>Same pattern as above</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>47</td>
+        <td><code>calls the correct URL for summary</code></td>
+        <td>The dashboard home screen's stat cards all come from this call. Wrong URL = blank cards.</td>
+        <td>URL contains <code>/franchise/summary</code></td>
+        <td>Same pattern as above</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>48</td>
+        <td><code>getOrders includes start and end query params</code></td>
+        <td>Date filtering is the core interactive feature. If params aren't appended, the backend ignores the user's date selection and always returns the default range.</td>
+        <td>URL contains <code>start=…</code> and <code>end=…</code></td>
+        <td>Inspect full URL string from <code>fetch.mock.calls[0][0]</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>49</td>
+        <td><code>getProducts includes start and end query params</code></td>
+        <td>Same rationale as getOrders — date filtering must be forwarded.</td>
+        <td>URL contains <code>start=…</code> and <code>end=…</code></td>
+        <td>Same pattern as above</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>50</td>
+        <td><code>getCustomers includes start and end query params</code></td>
+        <td>Same rationale.</td>
+        <td>URL contains <code>start=…</code> and <code>end=…</code></td>
+        <td>Same pattern as above</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>51</td>
+        <td><code>getCities includes start and end query params</code></td>
+        <td>Same rationale.</td>
+        <td>URL contains <code>start=…</code> and <code>end=…</code></td>
+        <td>Same pattern as above</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header">Response parsing · 3 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>52</td>
+        <td><code>returns parsed JSON on a successful call</code></td>
+        <td>The API client must resolve with the parsed body, not the raw Response object. Returning the Response itself would break all callers.</td>
+        <td>Resolved value deeply equals the mocked JSON body</td>
+        <td>Stub fetch with known payload, assert <code>result</code> with <code>toEqual</code></td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>53</td>
+        <td><code>throws with the detail string on a non-ok response</code></td>
+        <td>FastAPI error responses include a <code>detail</code> field. The UI displays this message to the user. If not thrown correctly, errors are swallowed silently.</td>
+        <td>Promise rejects with the <code>detail</code> string from the error body</td>
+        <td>Stub fetch with <code>ok: false</code> + <code>{ detail: "…" }</code>, assert rejection message</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>54</td>
+        <td><code>throws a fallback message when no detail is present</code></td>
+        <td>Not all error responses include a <code>detail</code> field (e.g. 500s, proxy errors). The fallback <code>"API error &lt;status&gt;"</code> must be used so callers always get a meaningful message.</td>
+        <td>Promise rejects with <code>"API error 500"</code> when body has no <code>detail</code></td>
+        <td>Stub fetch with <code>ok: false, status: 500</code> and empty JSON body</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header">Cache modes · 3 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>55</td>
+        <td><code>uses no-cache for data endpoints (getSummary)</code></td>
+        <td>Dashboard data must always be fresh. If a data endpoint used the browser cache, a user could see stale revenue figures after new orders arrive.</td>
+        <td><code>fetch</code> called with <code>{ cache: "no-cache" }</code></td>
+        <td>Assert second argument of <code>fetch</code> call</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>56</td>
+        <td><code>uses default cache for static endpoints (getHealth)</code></td>
+        <td>Health and auth responses don't change frequently. Using <code>no-cache</code> here would generate unnecessary backend traffic.</td>
+        <td><code>fetch</code> called with <code>{ cache: "default" }</code></td>
+        <td>Assert second argument of <code>fetch</code> call</td>
+        <td><span class="crit crit-low">LOW</span></td>
+      </tr>
+      <tr>
+        <td>57</td>
+        <td><code>uses default cache for authorize</code></td>
+        <td>Same rationale as health — the auth identity doesn't change mid-session.</td>
+        <td><code>fetch</code> called with <code>{ cache: "default" }</code></td>
+        <td>Assert second argument of <code>fetch</code> call</td>
+        <td><span class="crit crit-low">LOW</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <div class="group-header">Base URL · 1 test</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>58</td>
+        <td><code>falls back to /api when VITE_BACKEND_URL is not set</code></td>
+        <td>In SPCS deployment <code>VITE_BACKEND_URL</code> is not set — the app relies on the <code>/api</code> default so the NGINX router can intercept calls. If the fallback is missing, all API calls go nowhere in production.</td>
+        <td>URL starts with <code>/api/</code> when env var is absent</td>
+        <td>In test env the var is undefined; assert URL prefix with regex</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  
+  
+  
+
+  <div class="section-header">
+    <h2>Frontend — <code>src/components/ServiceStatus.test.jsx</code></h2>
+    <span class="suite suite-js">Vitest</span>
+  </div>
+
+  <div class="group-header">ServiceStatus component · 6 tests</div>
+  <table>
+    <thead><tr><th>#</th><th>Test name</th><th>Why it exists</th><th>What it checks</th><th>How</th><th>Criticality</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>59</td>
+        <td><code>renders without crashing</code></td>
+        <td>Smoke test — confirms the component mounts with no import errors, missing icons, or broken context. The first safety net before any logic tests.</td>
+        <td>Component renders without throwing</td>
+        <td><code>render(&lt;ServiceStatus /&gt;)</code> with a resolving mock; no assertion needed — an uncaught error fails the test</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>60</td>
+        <td><code>renders "Checking…" before the health response resolves</code></td>
+        <td>The component has an explicit loading state. If the initial state is skipped, the indicator flickers or jumps straight to an incorrect status.</td>
+        <td><code>"Checking…"</code> text is in the DOM immediately after mount</td>
+        <td>Mock <code>getHealth</code> with a never-resolving promise; assert text synchronously</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>61</td>
+        <td><code>renders "Service healthy" when status is healthy</code></td>
+        <td>This is the primary success state. If healthy data doesn't display the correct label, the Navbar misleads the user about service availability.</td>
+        <td><code>"Service healthy"</code> text appears after the promise resolves</td>
+        <td>Mock <code>getHealth</code> resolving with <code>{ status: "healthy" }</code>; <code>waitFor</code> asserts text</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>62</td>
+        <td><code>renders "Degraded" when status is degraded</code></td>
+        <td>A degraded backend (DB issue) should be surfaced to the user so they know data may be incomplete. If the component falls through to "healthy", the issue is hidden.</td>
+        <td><code>"Degraded"</code> text appears when <code>status === "degraded"</code></td>
+        <td>Mock resolves with <code>{ status: "degraded" }</code>; <code>waitFor</code> asserts text</td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>63</td>
+        <td><code>renders "Offline" when getHealth throws</code></td>
+        <td>If the backend is completely unreachable, the component must enter the error state. If it crashes instead, it takes down the whole Navbar.</td>
+        <td><code>"Offline"</code> text appears when <code>getHealth</code> rejects</td>
+        <td>Mock rejects with <code>new Error("Network error")</code>; <code>waitFor</code> asserts text</td>
+        <td><span class="crit crit-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>64</td>
+        <td><code>shows title="Backend unreachable" when getHealth throws</code></td>
+        <td>The tooltip on the status icon tells the user what is wrong on hover. The wrong or missing title text leaves the user with no actionable information.</td>
+        <td>Root element has <code>title="Backend unreachable"</code> after a rejection</td>
+        <td>Same rejection mock; assert <code>container.firstChild</code> attribute with <code>toHaveAttribute</code></td>
+        <td><span class="crit crit-med">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <footer>Made with IBM Bob</footer>
+</div>
+</body>
+</html>

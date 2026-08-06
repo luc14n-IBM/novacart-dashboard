@@ -1,0 +1,195 @@
+name: Auto Deploy to SPCS
+
+# Runs automatically on every push to main.
+# Requires the following GitHub Actions secrets set on your fork:
+#   SNOWFLAKE_PRIVATE_KEY  — contents of rsa_key.p8 (unencrypted)
+#   SNOWFLAKE_ACCOUNT      — account identifier (e.g. VEB81086.us-east-1)
+#   SNOWFLAKE_USER         — Snowflake username (e.g. PGUERRERO)
+#   REPO_URL               — Snowflake image repository URL (from SHOW IMAGE REPOSITORIES;)
+#   GROUP_NUMBER           — your assigned group number (e.g. 1, 2, 3)
+
+on:
+  push:
+    branches: ["main"]
+
+# Minimum permissions — only what each job actually needs
+permissions:
+  contents: read   # checkout only
+
+jobs:
+  ci:
+    name: Tests (must pass before deploy)
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Build, Push & Deploy
+    runs-on: ubuntu-latest
+    needs: ci   # only deploy if tests pass
+
+    # No additional permissions needed — all auth is via Snowflake JWT
+    permissions:
+      contents: read
+
+    env:
+      REPO_URL: ${{ secrets.REPO_URL }}
+      GROUP: ${{ secrets.GROUP_NUMBER }}
+      DB: NOVACART_DB
+      SCHEMA: APP
+      EXT_ROLE: NOVACART_EXT_ROLE
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Snowflake CLI
+        # Pin to a specific version — never install latest blindly in production
+        run: pip install snowflake-cli-labs==3.9.0 --quiet
+
+      - name: Configure Snowflake connection
+        env:
+          SNOW_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOW_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOW_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.snowflake
+          # Write the private key from the GitHub secret into a tmpfs-backed path
+          printf '%s\n' "$SNOW_KEY" > /tmp/rsa_key.p8
+          chmod 600 /tmp/rsa_key.p8
+          # Write config using printf to avoid heredoc YAML parsing issues
+          printf '[connections.spcs]\naccount = "%s"\nuser = "%s"\nauthenticator = "SNOWFLAKE_JWT"\nprivate_key_path = "/tmp/rsa_key.p8"\nrole = "NOVACART_ADMIN_ROLE"\n' \
+            "$SNOW_ACCOUNT" "$SNOW_USER" > ~/.snowflake/config.toml
+          chmod 0600 ~/.snowflake/config.toml
+
+      - name: Verify key file permissions
+        run: |
+          # Fail fast if permissions are wrong — do not proceed with a world-readable key
+          PERMS=$(stat -c '%a' /tmp/rsa_key.p8)
+          if [ "$PERMS" != "600" ]; then
+            echo "ERROR: rsa_key.p8 has unsafe permissions: $PERMS"
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Snowflake registry
+        run: snow spcs image-registry login --connection spcs
+
+      - name: Generate image tag
+        id: tag
+        run: echo "ts=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Build & push backend
+        env:
+          TAG: ${{ steps.tag.outputs.ts }}
+        run: |
+          docker build --no-cache --platform linux/amd64 \
+            -t backend_service_image_group${GROUP}:${TAG} ./backend
+          docker tag backend_service_image_group${GROUP}:${TAG} \
+            $REPO_URL/backend_service_image_group${GROUP}:${TAG}
+          docker tag backend_service_image_group${GROUP}:${TAG} \
+            $REPO_URL/backend_service_image_group${GROUP}:latest
+          docker push $REPO_URL/backend_service_image_group${GROUP}:${TAG}
+          docker push $REPO_URL/backend_service_image_group${GROUP}:latest
+
+      - name: Build & push frontend
+        env:
+          TAG: ${{ steps.tag.outputs.ts }}
+        run: |
+          docker build --platform linux/amd64 \
+            -t frontend_service_image_group${GROUP}:${TAG} ./frontend
+          docker tag frontend_service_image_group${GROUP}:${TAG} \
+            $REPO_URL/frontend_service_image_group${GROUP}:${TAG}
+          docker tag frontend_service_image_group${GROUP}:${TAG} \
+            $REPO_URL/frontend_service_image_group${GROUP}:latest
+          docker push $REPO_URL/frontend_service_image_group${GROUP}:${TAG}
+          docker push $REPO_URL/frontend_service_image_group${GROUP}:latest
+
+      - name: Build & push router
+        env:
+          TAG: ${{ steps.tag.outputs.ts }}
+        run: |
+          docker build --platform linux/amd64 \
+            -t router_service_image_group${GROUP}:${TAG} ./router
+          docker tag router_service_image_group${GROUP}:${TAG} \
+            $REPO_URL/router_service_image_group${GROUP}:${TAG}
+          docker tag router_service_image_group${GROUP}:${TAG} \
+            $REPO_URL/router_service_image_group${GROUP}:latest
+          docker push $REPO_URL/router_service_image_group${GROUP}:${TAG}
+          docker push $REPO_URL/router_service_image_group${GROUP}:latest
+
+      - name: Recreate SPCS service
+        env:
+          SNOW_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOW_USER: ${{ secrets.SNOWFLAKE_USER }}
+          TAG: ${{ steps.tag.outputs.ts }}
+        run: |
+          snow sql --connection spcs -q "
+          USE ROLE NOVACART_ADMIN_ROLE;
+          USE DATABASE $DB;
+          USE SCHEMA $SCHEMA;
+          DROP SERVICE IF EXISTS FRONTEND_SERVICE_GROUP${GROUP};
+          CREATE SERVICE FRONTEND_SERVICE_GROUP${GROUP}
+            IN COMPUTE POOL NOVACART_BACKEND_POOL
+            FROM SPECIFICATION \$\$
+          spec:
+            containers:
+            - name: backend
+              image: $REPO_URL/backend_service_image_group${GROUP}:${TAG}
+              env:
+                PORT: '8000'
+                DATA_BACKEND: snowflake
+                CLIENT_VALIDATION: Snowflake
+                SNOWFLAKE_ACCOUNT: $SNOW_ACCOUNT
+                SNOWFLAKE_USERNAME: $SNOW_USER
+                SNOWFLAKE_ROLE: NOVACART_APP_ROLE
+                SNOWFLAKE_DATABASE: NOVACART_DB
+                SNOWFLAKE_SCHEMA: APP
+                SNOWFLAKE_WAREHOUSE: NOVACART_APP_WH
+            - name: frontend
+              image: $REPO_URL/frontend_service_image_group${GROUP}:${TAG}
+              env:
+                PORT: '3000'
+                REACT_APP_BACKEND_URL: /api
+            - name: router
+              image: $REPO_URL/router_service_image_group${GROUP}:${TAG}
+              env:
+                FRONTEND_SERVICE: localhost:3000
+                BACKEND_SERVICE: localhost:8000
+          endpoints:
+          - name: routerendpoint
+            port: 9000
+            public: true
+          \$\$
+            MIN_INSTANCES=1 MAX_INSTANCES=1;
+          GRANT SERVICE ROLE FRONTEND_SERVICE_GROUP${GROUP}!ALL_ENDPOINTS_USAGE TO ROLE $EXT_ROLE;
+          "
+
+      - name: Wait and report URL
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          echo "Waiting for service to be ready..."
+          sleep 120
+          for i in {1..10}; do
+            snow sql --connection spcs -q \
+              "USE DATABASE $DB; USE SCHEMA $SCHEMA; SHOW ENDPOINTS IN SERVICE FRONTEND_SERVICE_GROUP${GROUP};" \
+              --format json > /tmp/endpoints.json || true
+            URL=$(python3 .github/scripts/get_url.py || echo "")
+            if [ -n "$URL" ]; then
+              echo "## Deployed - Group $GROUP" >> $GITHUB_STEP_SUMMARY
+              echo "**Commit:** $COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
+              echo "**URL:** https://$URL" >> $GITHUB_STEP_SUMMARY
+              echo "App URL: https://$URL"
+              exit 0
+            fi
+            echo "Still provisioning... ($i/10)"
+            sleep 30
+          done
+          echo "Service deployed — check Snowflake for URL"
+
+      - name: Cleanup key material
+        if: always()   # runs even if a prior step failed
+        run: |
+          rm -f /tmp/rsa_key.p8
+          echo "Private key material removed from runner"
