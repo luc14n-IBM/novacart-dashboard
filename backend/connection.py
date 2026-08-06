@@ -115,15 +115,17 @@ def execute_query(conn, query: str, params: tuple = ()) -> list[dict]:
 
     Args:
         conn: database connection (SQLite or Snowflake)
-        query: SQL query string
-        params: query parameters (use ? for SQLite, %s for Snowflake)
+        query: SQL query string with ? placeholders (SQLite style)
+        params: query parameters
 
     Returns:
         list of dicts, one per row
     """
     if DATA_BACKEND == "snowflake":
+        # Snowflake uses %s (pyformat) placeholders, not ?
+        snowflake_query = query.replace("?", "%s")
         cursor = conn.cursor(snowflake.connector.DictCursor)
-        cursor.execute(query, params)
+        cursor.execute(snowflake_query, params)
         rows = cursor.fetchall()
         cursor.close()
         # Snowflake returns uppercase keys — normalize to lowercase
