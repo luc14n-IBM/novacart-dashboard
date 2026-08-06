@@ -306,7 +306,8 @@ Tests the frontend's ability to handle API responses, including edge cases and e
 **Running:**
 ```bash
 cd frontend
-npm test
+npm run test
+# or: npx vitest run
 ```
 
 ---
@@ -407,33 +408,55 @@ WHERE order_date BETWEEN '2022-01-15' AND '2022-01-15'  -- includes exactly one 
 
 ## CI/CD Integration
 
-### GitHub Actions (`.github/workflows/test.yml`)
+### GitHub Actions (`.github/workflows/ci.yml`)
+
+The CI workflow runs on every push and pull request, and is also called as a gate by `auto-deploy.yml` before any SPCS deployment.
 
 ```yaml
-name: Test
+name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main", "**"]
+  pull_request:
+    branches: ["main"]
+  workflow_call:   # allows auto-deploy.yml to call this as a gate
 
 jobs:
-  backend:
+  backend-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: pip install -r backend/requirements.txt
-      - run: cd backend && python -m pytest tests/ -v --tb=short
+          python-version: "3.11"
+          cache: "pip"
+      - run: pip install -r requirements.txt
+        working-directory: backend
+      - run: |
+          python -m pytest tests/ test_api.py -v \
+            --tb=short \
+            --cov=. \
+            --cov-report=xml \
+            --cov-fail-under=95
+        working-directory: backend
+        env:
+          DATA_BACKEND: sqlite
+          SQLITE_PATH: ../data/novacart_gold.db
+          CLIENT_VALIDATION: Dev
 
-  frontend:
+  frontend-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-      - run: cd frontend && npm install
-      - run: cd frontend && npm test
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run test -- --coverage --coverage.reporter=text --coverage.reporter=lcov
+        working-directory: frontend
 ```
 
 ---
@@ -472,7 +495,7 @@ python -m pip install -r requirements.txt
 
 ### Tests Pass Locally but Fail in CI
 
-- Check Python version (tests assume 3.9+)
+- Check Python version (CI uses 3.11; locally ensure `python3.11` resolves correctly)
 - Ensure environment variables are set (`DATA_BACKEND=sqlite`, `CLIENT_VALIDATION=Dev`)
 - Verify database seed is created (conftest.py should create in-memory DB)
 
@@ -487,9 +510,9 @@ python -m pip install -r requirements.txt
 
 ### Frontend Tests Not Running
 
-- Install Vitest: `npm install --save-dev vitest`
-- Check `vite.config.js` includes Vitest config
-- Run: `npm test` or `npx vitest`
+- Ensure dependencies are installed: `npm ci` (from `frontend/`)
+- Vitest is already configured in `vite.config.js` — run with `npm run test` or `npx vitest run`
+- Coverage requires `@vitest/coverage-v8` (already in `devDependencies`)
 
 ---
 

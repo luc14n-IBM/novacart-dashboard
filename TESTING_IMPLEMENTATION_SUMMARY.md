@@ -33,7 +33,7 @@ A comprehensive testing framework has been established for the NovaCart Dashboar
 
 ### Configuration
 - **pytest.ini** — Pytest markers, test discovery, output formatting
-- **requirements.txt** — Updated with pytest==7.4.3, pytest-cov==4.1.0
+- **requirements.txt** — Updated with pytest==9.1.1, pytest-cov==4.1.0, httpx==0.28.1
 - **setup_tests.py** — Automated test environment setup
 
 ---
@@ -126,11 +126,11 @@ TOTAL:               280+ tests established
 
 ### Frontend Summary
 ```
-API Response Tests:    80+ test cases (implemented, ready for Vitest setup)
+API Response Tests:    80+ test cases
 Network Error Handling: 6 tests
 Type Validation:       4 tests
 ──────────────────────────────
-TOTAL:                90+ test cases established
+TOTAL:                90+ test cases (Vitest configured and running via npm run test)
 ```
 
 ---
@@ -169,13 +169,10 @@ npm test                                             # All tests (requires Vites
 
 ## Next Steps for Production Readiness
 
-1. **Resolve edge case fixture setup** — Some edge case tests have fixture scoping issues
-2. **Set up Vitest in frontend** — Install and configure Vitest for frontend tests
-3. **Add GitHub Actions workflow** — Automate test runs on push/PR
-4. **Add performance benchmarks** — Test query execution times with large datasets
-5. **Add Snowflake integration tests** — Run same tests against real Snowflake account
-6. **Add load tests** — Verify API handles concurrent requests
-7. **Add React component tests** — Test individual React components with React Testing Library
+1. **Add performance benchmarks** — Test query execution times with large datasets
+2. **Add Snowflake integration tests** — Run same tests against real Snowflake account
+3. **Add load tests** — Verify API handles concurrent requests
+4. **Add React component tests** — Test individual React components with React Testing Library
 
 ---
 

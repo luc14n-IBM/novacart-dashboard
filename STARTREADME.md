@@ -99,7 +99,7 @@ bash hooks/install-hooks.sh
 ```
 
 Once installed, every `git push` will automatically run:
-1. Backend tests — `pytest test_api.py`
+1. Backend tests — `python -m pytest tests/ test_api.py`
 2. Frontend tests — `npm run test`
 
 If tests fail, the push is blocked with a clear message. In an emergency you can bypass with `git push --no-verify`.
@@ -155,7 +155,7 @@ Default settings work out of the box for local development — no changes needed
 
 ### Frontend
 
-The frontend reads `REACT_APP_BACKEND_URL` — defaults to `http://localhost:8000` when not set, so no `.env` changes are needed for local dev.
+The frontend reads `VITE_BACKEND_URL` — defaults to `/api` (proxied by Vite dev server to `http://127.0.0.1:8000`) when set in `.env`. No changes are needed for local dev beyond copying the example file.
 
 ---
 
