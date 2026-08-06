@@ -218,7 +218,7 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
 
         results = execute_query(conn, """
         SELECT
-            d.year || '-' || printf('%02d', d.month) AS month,
+            d.year || '-' || LPAD(CAST(d.month AS VARCHAR), 2, '0') AS month,
             d.month_name,
             COUNT(DISTINCT o.order_id)               AS order_count,
             ROUND(SUM(o.amount), 2)                  AS revenue
