@@ -183,9 +183,9 @@ def get_summary(start: str | None = None, end: str | None = None):
                 WHERE status IN ('delivered', 'shipped')
             """)
 
-    row = results[0]
-    if row["total_orders"] is None or row["total_orders"] == 0:
-        raise HTTPException(status_code=404, detail="No data found for the given date range")
+        row = results[0]
+        if row["total_orders"] is None or row["total_orders"] == 0:
+            raise HTTPException(status_code=404, detail="No data found for the given date range")
         return {
             "total_revenue":    round(row["total_revenue"] or 0, 2),
             "total_orders":     row["total_orders"],
@@ -230,9 +230,8 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
         ORDER BY d.year, d.month
         """, (start, end))
 
-    if not results:
-        raise HTTPException(status_code=404, detail="No order data found for the given date range")
-    return results
+        if not results:
+            raise HTTPException(status_code=404, detail="No order data found for the given date range")
         return results
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
