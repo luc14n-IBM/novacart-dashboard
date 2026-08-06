@@ -73,13 +73,14 @@ export default function LoginView() {
 
           {/* Email */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{
+            <label htmlFor="login-email" style={{
               display: 'block', fontSize: 13, fontWeight: 600,
               color: 'var(--text-secondary)', marginBottom: 6,
             }}>
               Email address
             </label>
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -89,7 +90,7 @@ export default function LoginView() {
                 width: '100%', padding: '9px 12px', fontSize: 14,
                 fontFamily: 'inherit', color: 'var(--text-primary)',
                 background: 'var(--bg-primary)', border: '1px solid var(--border)',
-                borderRadius: 6, outline: 'none',
+                borderRadius: 6,
               }}
             />
           </div>
@@ -97,7 +98,7 @@ export default function LoginView() {
           {/* Password */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <label htmlFor="login-password" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
                 Password
               </label>
               <a href="#" style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none' }}>
@@ -105,6 +106,7 @@ export default function LoginView() {
               </a>
             </div>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -114,14 +116,14 @@ export default function LoginView() {
                 width: '100%', padding: '9px 12px', fontSize: 14,
                 fontFamily: 'inherit', color: 'var(--text-primary)',
                 background: 'var(--bg-primary)', border: '1px solid var(--border)',
-                borderRadius: 6, outline: 'none',
+                borderRadius: 6,
               }}
             />
           </div>
 
           {/* Error message */}
           {error && (
-            <div style={{ color: '#C62828', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 6, padding: '9px 12px', fontSize: 13, marginBottom: 16 }}>
+            <div role="alert" style={{ color: '#C62828', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 6, padding: '9px 12px', fontSize: 13, marginBottom: 16 }}>
               {error}
             </div>
           )}
