@@ -11,6 +11,7 @@ name: Auto Deploy to SPCS
 on:
   push:
     branches: ["main"]
+  workflow_dispatch:
 
 # Minimum permissions — only what each job actually needs
 permissions:
