@@ -60,10 +60,21 @@ jobs:
           head -1 /tmp/rsa_key.p8
           tail -1 /tmp/rsa_key.p8
           wc -l /tmp/rsa_key.p8
-          # Write config using printf to avoid heredoc YAML parsing issues
-          printf '[connections.spcs]\naccount = "%s"\nuser = "%s"\nauthenticator = "SNOWFLAKE_JWT"\nprivate_key_path = "/tmp/rsa_key.p8"\nrole = "NOVACART_ADMIN_ROLE"\n' \
-            "$SNOW_ACCOUNT" "$SNOW_USER" > ~/.snowflake/config.toml
+          # Write config — field names must match Snowflake CLI exactly (private_key_file not private_key_path)
+          cat > ~/.snowflake/config.toml << EOF
+          [connections.spcs]
+          account = "$SNOW_ACCOUNT"
+          user = "$SNOW_USER"
+          authenticator = "snowflake_jwt"
+          private_key_file = "/tmp/rsa_key.p8"
+          role = "NOVACART_ADMIN_ROLE"
+          database = "NOVACART_DB"
+          schema = "APP"
+          warehouse = "NOVACART_APP_WH"
+          EOF
           chmod 0600 ~/.snowflake/config.toml
+          # Debug: print config (account/user are not secret)
+          cat ~/.snowflake/config.toml
 
       - name: Verify key file permissions
         run: |
