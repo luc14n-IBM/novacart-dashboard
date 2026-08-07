@@ -205,10 +205,36 @@ jobs:
             if [ -n "$URL" ]; then
               echo "✓ Service endpoint found: $URL"
               echo ""
-              echo "Waiting for backend to be healthy (30s more)..."
-              sleep 30
-              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://$URL/health" || echo "000")
-              if [ "$HTTP_CODE" = "200" ]; then
+              echo "Running diagnostics..."
+              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              
+              # Test health endpoint with verbose output
+              echo ""
+              echo "Testing /health endpoint (backend):"
+              HEALTH_RESPONSE=$(curl -s -w "\n%{http_code}" "https://$URL/health" 2>&1 || echo "Connection failed\n000")
+              HEALTH_CODE=$(echo "$HEALTH_RESPONSE" | tail -1)
+              HEALTH_BODY=$(echo "$HEALTH_RESPONSE" | head -n -1)
+              echo "HTTP Status: $HEALTH_CODE"
+              echo "Response: $HEALTH_BODY"
+              echo ""
+              
+              # Test root endpoint with redirect info
+              echo "Testing / endpoint (frontend):"
+              ROOT_RESPONSE=$(curl -s -i "https://$URL/" 2>&1 | head -20)
+              echo "$ROOT_RESPONSE"
+              echo ""
+              
+              # Test /api endpoint
+              echo "Testing /api endpoint (router proxy):"
+              API_RESPONSE=$(curl -s -i "https://$URL/api" 2>&1 | head -20)
+              echo "$API_RESPONSE"
+              echo ""
+              
+              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo ""
+              
+              # If health returns 200, mark as ready
+              if [ "$HEALTH_CODE" = "200" ]; then
                 echo "✓ Backend is healthy"
                 echo ""
                 echo "## Deployed - Group $GROUP" >> $GITHUB_STEP_SUMMARY
@@ -219,7 +245,7 @@ jobs:
                 printf 'App URL: https://%s\n' "$URL"
                 exit 0
               else
-                echo "Backend returning HTTP $HTTP_CODE — still initializing..."
+                echo "Backend returning HTTP $HEALTH_CODE — still initializing..."
               fi
             fi
             echo "Still provisioning... ($i/15)"
