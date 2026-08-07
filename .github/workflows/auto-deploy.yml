@@ -149,6 +149,10 @@ jobs:
           SNOW_USER: ${{ secrets.SNOWFLAKE_USER }}
           TAG: ${{ steps.tag.outputs.ts }}
         run: |
+          # First, check if there's an existing network policy or ingress config
+          echo "Checking SPCS configuration..."
+          snow sql --connection spcs -q "SHOW NETWORK POLICIES;" || true
+          echo ""
           snow sql --connection spcs -q "
           USE ROLE NOVACART_ADMIN_ROLE;
           USE DATABASE $DB;
@@ -187,8 +191,8 @@ jobs:
               public: true
           \$\$
             MIN_INSTANCES=1 MAX_INSTANCES=1;
-          ALTER SERVICE FRONTEND_SERVICE_GROUP${GROUP} SET ENABLE_ALL_ACCESS=TRUE;
-          GRANT SERVICE ROLE FRONTEND_SERVICE_GROUP${GROUP}!ALL_ENDPOINTS_USAGE TO ROLE $EXT_ROLE;
+          GRANT USAGE ON SERVICE FRONTEND_SERVICE_GROUP${GROUP} TO ROLE $EXT_ROLE;
+          GRANT BIND SERVICE ENDPOINT ON SERVICE FRONTEND_SERVICE_GROUP${GROUP} TO ROLE $EXT_ROLE;
           "
 
       - name: Wait and report URL
