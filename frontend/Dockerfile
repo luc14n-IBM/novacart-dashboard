@@ -14,7 +14,7 @@ RUN npm run build
 # Stage 2 — Serve with Red Hat UBI nginx (replaces nginx:alpine — not from trusted registry)
 FROM registry.access.redhat.com/ubi9/nginx-124:latest
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 3000
 USER 1001
 CMD ["nginx", "-g", "daemon off;"]
