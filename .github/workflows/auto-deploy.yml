@@ -196,22 +196,37 @@ jobs:
         run: |
           echo "Waiting for service to be ready..."
           sleep 120
-          for i in {1..10}; do
+          for i in {1..15}; do
+            echo "Polling for service endpoint ($i/15)..."
             snow sql --connection spcs -q \
               "USE DATABASE $DB; USE SCHEMA $SCHEMA; SHOW ENDPOINTS IN SERVICE FRONTEND_SERVICE_GROUP${GROUP};" \
               --format json > /tmp/endpoints.json || true
             URL=$(python3 .github/scripts/get_url.py || echo "")
             if [ -n "$URL" ]; then
-              echo "## Deployed - Group $GROUP" >> $GITHUB_STEP_SUMMARY
-              echo "**Commit:** $COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
-              printf '**URL:** [https://%s](https://%s)\n' "$URL" "$URL" >> $GITHUB_STEP_SUMMARY
-              printf 'App URL: https://%s\n' "$URL"
-              exit 0
+              echo "✓ Service endpoint found: $URL"
+              echo ""
+              echo "Waiting for backend to be healthy (30s more)..."
+              sleep 30
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://$URL/health" || echo "000")
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "✓ Backend is healthy"
+                echo ""
+                echo "## Deployed - Group $GROUP" >> $GITHUB_STEP_SUMMARY
+                echo "**Commit:** $COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
+                printf '**URL:** [https://%s](https://%s)\n' "$URL" "$URL" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "**Status:** All services healthy ✓" >> $GITHUB_STEP_SUMMARY
+                printf 'App URL: https://%s\n' "$URL"
+                exit 0
+              else
+                echo "Backend returning HTTP $HTTP_CODE — still initializing..."
+              fi
             fi
-            echo "Still provisioning... ($i/10)"
-            sleep 30
+            echo "Still provisioning... ($i/15)"
+            sleep 20
           done
-          echo "Service deployed — check Snowflake for URL"
+          echo "⚠ Service provisioning incomplete — check Snowflake console for details"
+          echo "Run: snow spcs service logs --service FRONTEND_SERVICE_GROUP${GROUP} --connection spcs"
 
       - name: Cleanup key material
         if: always()   # runs even if a prior step failed
