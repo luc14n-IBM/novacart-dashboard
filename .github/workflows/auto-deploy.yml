@@ -54,7 +54,8 @@ jobs:
         run: |
           mkdir -p ~/.snowflake
           # Write the private key from the GitHub secret into a tmpfs-backed path
-          printf '%s\n' "$SNOW_KEY" > /tmp/rsa_key.p8
+          # GitHub flattens multiline secrets into literal \n — printf %b restores real newlines
+          printf '%b\n' "$SNOW_KEY" > /tmp/rsa_key.p8
           chmod 600 /tmp/rsa_key.p8
           # Write config using printf to avoid heredoc YAML parsing issues
           printf '[connections.spcs]\naccount = "%s"\nuser = "%s"\nauthenticator = "SNOWFLAKE_JWT"\nprivate_key_path = "/tmp/rsa_key.p8"\nrole = "NOVACART_ADMIN_ROLE"\n' \
