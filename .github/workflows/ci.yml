@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: ["main"]
   workflow_call:   # allows auto-deploy.yml to call this as a gate
+  workflow_dispatch:
 
 jobs:
 
