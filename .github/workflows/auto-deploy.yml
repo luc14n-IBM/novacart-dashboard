@@ -195,8 +195,8 @@ jobs:
             if [ -n "$URL" ]; then
               echo "## Deployed - Group $GROUP" >> $GITHUB_STEP_SUMMARY
               echo "**Commit:** $COMMIT_SHA" >> $GITHUB_STEP_SUMMARY
-              echo "**URL:** [https://$URL](https://$URL)" >> $GITHUB_STEP_SUMMARY
-              echo "App URL: https://$URL"
+              printf '**URL:** [https://%s](https://%s)\n' "$URL" "$URL" >> $GITHUB_STEP_SUMMARY
+              printf 'App URL: https://%s\n' "$URL"
               exit 0
             fi
             echo "Still provisioning... ($i/10)"
