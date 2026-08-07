@@ -8,6 +8,8 @@ WORKDIR /app
 RUN microdnf install -y \
     python3.11 \
     python3.11-pip \
+    && ln -s /usr/bin/python3.11 /usr/local/bin/python \
+    && ln -s /usr/bin/python3.11 /usr/local/bin/python3 \
     && microdnf clean all
 
 # Upgrade pip and install dependencies
