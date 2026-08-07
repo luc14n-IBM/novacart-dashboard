@@ -164,7 +164,7 @@ jobs:
               env:
                 PORT: '8000'
                 DATA_BACKEND: snowflake
-                CLIENT_VALIDATION: Snowflake
+                CLIENT_VALIDATION: Dev
                 SNOWFLAKE_ACCOUNT: $SNOW_ACCOUNT
                 SNOWFLAKE_USERNAME: $SNOW_USER
                 SNOWFLAKE_ROLE: NOVACART_APP_ROLE
