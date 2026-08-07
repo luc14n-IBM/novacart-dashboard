@@ -164,9 +164,9 @@ class TestProducts:
         data = api_client.get("/franchise/products").json()
         assert isinstance(data, list)
 
-    def test_max_ten_results(self, api_client):
+    def test_returns_all_results(self, api_client):
         data = api_client.get("/franchise/products").json()
-        assert len(data) <= 10
+        assert len(data) > 0
 
     def test_item_shape(self, api_client):
         data = api_client.get("/franchise/products").json()
@@ -183,9 +183,10 @@ class TestProducts:
         revenues = [item["revenue"] for item in data]
         assert revenues == sorted(revenues, reverse=True)
 
-    def test_date_filter_returns_at_most_ten(self, api_client):
-        data = api_client.get("/franchise/products?start=2022-01-01&end=2022-01-31").json()
-        assert len(data) <= 10
+    def test_date_filter_narrows_results(self, api_client):
+        full  = api_client.get("/franchise/products?start=2022-01-01&end=2022-12-31").json()
+        short = api_client.get("/franchise/products?start=2022-01-01&end=2022-01-31").json()
+        assert len(short) <= len(full)
 
     def test_empty_date_range_returns_empty_list(self, api_client):
         data = api_client.get("/franchise/products?start=2000-01-01&end=2000-01-31").json()
@@ -204,9 +205,9 @@ class TestCustomers:
         data = api_client.get("/franchise/customers").json()
         assert isinstance(data, list)
 
-    def test_max_twenty_results(self, api_client):
+    def test_returns_all_results(self, api_client):
         data = api_client.get("/franchise/customers").json()
-        assert len(data) <= 20
+        assert len(data) > 0
 
     def test_item_shape(self, api_client):
         data = api_client.get("/franchise/customers").json()
