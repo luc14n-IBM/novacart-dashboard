@@ -1,0 +1,28 @@
+# Version control and CI
+.git/
+.gitignore
+.github/
+.gitlab-ci.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.csv
+.env*
+
+# Application code (not needed for router)
+backend/
+frontend/
+data/
+venv/
+.venv/
+node_modules/
+*.pyc

@@ -1,12 +1,54 @@
+# Python virtual environments
 venv/
 .venv/
+env/
+
+# Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.so
+.Python
+
+# Testing and coverage
 .pytest_cache/
 .coverage
+.coveragerc
 htmlcov/
+test_*.py
+conftest.py
+
+# Environment and secrets
 .env
 .env.*
+.env.example
+
+# Development artifacts
+.git/
+.gitignore
+*.log
 *.csv
+*.tmp
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Frontend build (should not be included)
+frontend/
+node_modules/
+
+# Data and backups
+data/
+*.db
+*.sqlite3
