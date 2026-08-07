@@ -65,7 +65,7 @@ jobs:
           [connections.spcs]
           account = "$SNOW_ACCOUNT"
           user = "$SNOW_USER"
-          authenticator = "snowflake_jwt"
+          authenticator = "SNOWFLAKE_JWT"
           private_key_file = "/tmp/rsa_key.p8"
           role = "NOVACART_ADMIN_ROLE"
           database = "NOVACART_DB"
