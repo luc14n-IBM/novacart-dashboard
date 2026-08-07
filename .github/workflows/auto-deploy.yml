@@ -185,6 +185,7 @@ jobs:
             - name: routerendpoint
               port: 9000
               public: true
+              authentication: unauthenticated
           \$\$
             MIN_INSTANCES=1 MAX_INSTANCES=1;
           GRANT SERVICE ROLE FRONTEND_SERVICE_GROUP${GROUP}!ALL_ENDPOINTS_USAGE TO ROLE $EXT_ROLE;
