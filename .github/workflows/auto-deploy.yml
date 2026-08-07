@@ -53,10 +53,13 @@ jobs:
           SNOW_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.snowflake
-          # Write the private key from the GitHub secret into a tmpfs-backed path
-          # GitHub flattens multiline secrets into literal \n — printf %b restores real newlines
-          printf '%b\n' "$SNOW_KEY" > /tmp/rsa_key.p8
+          # Write the private key — echo handles real newlines from GitHub secrets correctly
+          echo "$SNOW_KEY" > /tmp/rsa_key.p8
           chmod 600 /tmp/rsa_key.p8
+          # Debug: verify the PEM headers are present (does not expose key body)
+          head -1 /tmp/rsa_key.p8
+          tail -1 /tmp/rsa_key.p8
+          wc -l /tmp/rsa_key.p8
           # Write config using printf to avoid heredoc YAML parsing issues
           printf '[connections.spcs]\naccount = "%s"\nuser = "%s"\nauthenticator = "SNOWFLAKE_JWT"\nprivate_key_path = "/tmp/rsa_key.p8"\nrole = "NOVACART_ADMIN_ROLE"\n' \
             "$SNOW_ACCOUNT" "$SNOW_USER" > ~/.snowflake/config.toml
