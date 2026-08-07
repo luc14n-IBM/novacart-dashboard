@@ -1,14 +1,19 @@
-# Use minimal Python image — significantly smaller than full UBI9 python-311
-FROM registry.access.redhat.com/ubi9/python-311-minimal:latest
+# Use UBI9 minimal as base, then add Python 3.11
+# This is significantly smaller than ubi9/python-311:latest (~500MB → ~250MB)
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
 WORKDIR /app
 
-# Install only what's needed for Snowflake connector + FastAPI
-# RUN microdnf install -y gcc python3-devel && microdnf clean all
-# (Already included in python-311-minimal)
+# Install Python 3.11 and minimal runtime dependencies
+RUN microdnf install -y \
+    python3.11 \
+    python3.11-pip \
+    && microdnf clean all
 
+# Upgrade pip and install dependencies
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt && \
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
 # Only copy application code — .dockerignore excludes tests, venv, cache
