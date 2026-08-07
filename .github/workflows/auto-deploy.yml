@@ -3,10 +3,8 @@ name: Auto Deploy to SPCS
 # Runs automatically on every push to main.
 # Requires the following GitHub Actions secrets set on your fork:
 #   SNOWFLAKE_PRIVATE_KEY  — contents of rsa_key.p8 (unencrypted)
-#   SNOWFLAKE_ACCOUNT      — account identifier (e.g. VEB81086.us-east-1)
 #   SNOWFLAKE_USER         — Snowflake username (e.g. PGUERRERO)
 #   REPO_URL               — Snowflake image repository URL (from SHOW IMAGE REPOSITORIES;)
-#   GROUP_NUMBER           — your assigned group number (e.g. 1, 2, 3)
 
 on:
   push:
@@ -33,7 +31,8 @@ jobs:
 
     env:
       REPO_URL: ${{ secrets.REPO_URL }}
-      GROUP: ${{ secrets.GROUP_NUMBER }}
+      GROUP: 5
+      SNOWFLAKE_ACCOUNT: bpbmyoub-se8322-snowflake-containers-adrianm
       DB: NOVACART_DB
       SCHEMA: APP
       EXT_ROLE: NOVACART_EXT_ROLE
