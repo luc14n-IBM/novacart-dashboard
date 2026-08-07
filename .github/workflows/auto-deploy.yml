@@ -32,7 +32,7 @@ jobs:
     env:
       REPO_URL: ${{ secrets.REPO_URL }}
       GROUP: 5
-      SNOWFLAKE_ACCOUNT: bpbmyoub-se8322-snowflake-containers-adrianm
+      SNOWFLAKE_ACCOUNT: VEB81086.us-east-1
       DB: NOVACART_DB
       SCHEMA: APP
       EXT_ROLE: NOVACART_EXT_ROLE
@@ -47,7 +47,7 @@ jobs:
 
       - name: Configure Snowflake connection
         env:
-          SNOW_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOW_ACCOUNT: ${{ env.SNOWFLAKE_ACCOUNT }}
           SNOW_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOW_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
@@ -135,7 +135,7 @@ jobs:
 
       - name: Recreate SPCS service
         env:
-          SNOW_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOW_ACCOUNT: ${{ env.SNOWFLAKE_ACCOUNT }}
           SNOW_USER: ${{ secrets.SNOWFLAKE_USER }}
           TAG: ${{ steps.tag.outputs.ts }}
         run: |
