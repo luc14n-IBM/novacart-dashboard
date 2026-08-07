@@ -8,15 +8,13 @@ WORKDIR /app
 RUN microdnf install -y \
     python3.11 \
     python3.11-pip \
-    && ln -s /usr/bin/python3.11 /usr/local/bin/python \
-    && ln -s /usr/bin/python3.11 /usr/local/bin/python3 \
     && microdnf clean all
 
 # Upgrade pip and install dependencies
 COPY requirements.txt ./
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip cache purge
+RUN /usr/bin/python3.11 -m pip install --upgrade pip && \
+    /usr/bin/python3.11 -m pip install --no-cache-dir -r requirements.txt && \
+    /usr/bin/python3.11 -m pip cache purge
 
 # Only copy application code — .dockerignore excludes tests, venv, cache
 COPY --chown=1001:1001 . .
